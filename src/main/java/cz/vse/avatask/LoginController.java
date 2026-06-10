@@ -61,8 +61,10 @@ public class LoginController {
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setTitle("Avatask - Ulohy");
-        stage.setScene(new Scene(root));
-        stage.show();
+
+        stage.getScene().setRoot(root);
+
+
     }
 
     private void zobrazChybu(String hlavicka, String text) {

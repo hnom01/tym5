@@ -10,101 +10,104 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:controller="cz.vse.avatask.ProfilController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="430.0" prefWidth="720.0" style="-fx-background-color: #fff7f8;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
-   <top>
-      <HBox alignment="CENTER_RIGHT" spacing="20.0" style="-fx-background-color: #6A040F;" BorderPane.alignment="CENTER">
-         <padding>
-            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-         </padding>
-         <children>
-            <Label style="-fx-font-weight: bold; -fx-font-style: italic;" text="Level X" textFill="WHITE" />
-            <Label text="XP: xxx" textFill="WHITE">
-               <font>
-                  <Font name="System Bold Italic" size="12.0" />
-               </font>
-            </Label>
-            <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Obchod a satnik" textFill="WHITE" />
-            <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Statistiky" textFill="WHITE" />
-            <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Moj profil" textFill="WHITE" />
-            <ImageView fitHeight="38.0" fitWidth="102.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="ALWAYS">
-               <image>
-                  <Image url="@avatask.png" />
-               </image>
-            </ImageView>
-         </children>
-      </HBox>
-   </top>
-   <center>
-      <HBox alignment="CENTER" spacing="16.0" BorderPane.alignment="CENTER">
-         <children>
-            <VBox alignment="CENTER" spacing="10.0">
-               <padding>
-                  <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-               </padding>
-               <children>
-                  <ImageView fitHeight="188.0" fitWidth="210.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@avatar2.png" />
-                     </image>
-                  </ImageView>
-                  <Label fx:id="menoPouzivatelaLabel" alignment="CENTER" text="Uzivatel" textFill="#6a040f">
-                     <font>
-                        <Font name="System Bold Italic" size="15.0" />
-                     </font>
-                  </Label>
-                  <Label fx:id="levelLabel" text="Aktualny Level: x" textFill="#6a040f">
-                     <font>
-                        <Font name="System Bold" size="15.0" />
-                     </font>
-                  </Label>
-                  <Label fx:id="xpLabel" text="Pocet XP: xxx" textFill="#6a040f">
-                     <font>
-                        <Font name="System Bold" size="15.0" />
-                     </font>
-                  </Label>
-               </children>
-            </VBox>
-            <VBox maxWidth="1.7976931348623157E308" prefHeight="360.0" prefWidth="420.0" spacing="12.0" style="-fx-background-color: #6A040F;">
-               <padding>
-                  <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
-               </padding>
-               <children>
-                  <Label text="Nastavenia profilu" textFill="WHITE">
-                     <font>
-                        <Font name="System Bold Italic" size="15.0" />
-                     </font>
-                  </Label>
-                  <HBox spacing="10.0">
-                     <children>
-                        <Label text="Email:" textFill="WHITE" />
-                        <TextField fx:id="emailField" promptText="Email" HBox.hgrow="ALWAYS" />
-                        <Button mnemonicParsing="false" onAction="#ulozEmail" text="Ulozit email" />
-                     </children>
-                  </HBox>
-                  <HBox spacing="10.0">
-                     <children>
-                        <Label text="Heslo:" textFill="WHITE" />
-                        <Label fx:id="hesloMaskLabel" text="********" textFill="WHITE" />
-                        <TextField fx:id="hesloVisibleField" editable="false" managed="false" visible="false" HBox.hgrow="ALWAYS" />
-                        <ToggleButton fx:id="hesloToggleButton" mnemonicParsing="false" onAction="#prepniHesloZobrazenie" text="Zobrazit heslo" />
-                     </children>
-                  </HBox>
-                  <CheckBox fx:id="emailNotifikacieCheckBox" mnemonicParsing="false" onAction="#ulozNastavenia" text="Povolit email notifikacie" textFill="WHITE" />
-                  <CheckBox fx:id="statistickeUdajeCheckBox" mnemonicParsing="false" onAction="#ulozNastavenia" text="Povolit statisticke notifikacie" textFill="WHITE" />
-                  <ToggleButton fx:id="tmavyRezimToggle" mnemonicParsing="false" onAction="#ulozNastavenia" style="-fx-background-color: white;" text="Tmavy rezim" />
-                  <HBox spacing="10.0">
-                     <children>
-                        <Button mnemonicParsing="false" onAction="#otvorDialogZmenyHesla" style="-fx-background-color: white;" text="Zmenit heslo" />
-                        <Button mnemonicParsing="false" onAction="#odhlasSa" style="-fx-background-color: transparent;" text="Odhlasit sa" textFill="WHITE" />
-                     </children>
-                  </HBox>
-                  <Label fx:id="statusLabel" textFill="WHITE" />
-               </children>
-            </VBox>
-         </children>
-      </HBox>
-   </center>
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="430.0" prefWidth="720.0" style="-fx-background-color: #fff7f8;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cz.vse.avatask.ProfilController">
+    <top>
+        <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-background-color: #6A040F;" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+            </padding>
+            <children>
+                <Label fx:id="topLevelLabel" style="-fx-font-weight: bold; -fx-font-style: italic;" text="Level X" textFill="WHITE" />
+                <Label fx:id="topXpLabel" text="XP: xxx" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold Italic" size="12.0" />
+                    </font>
+                </Label>
+                <Region HBox.hgrow="ALWAYS" />
+                <Button mnemonicParsing="false" onAction="#otvorUlohy" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Moje ulohy" textFill="WHITE" />
+                <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Obchod a satnik" textFill="WHITE" />
+                <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Statistiky" textFill="WHITE" />
+                <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Moj profil" textFill="WHITE" />
+                <ImageView fitHeight="38.0" fitWidth="102.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@avatask.png" />
+                    </image>
+                </ImageView>
+            </children>
+        </HBox>
+    </top>
+    <center>
+        <HBox alignment="CENTER" spacing="16.0" BorderPane.alignment="CENTER">
+            <children>
+                <VBox alignment="CENTER" spacing="10.0">
+                    <padding>
+                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                    </padding>
+                    <children>
+                        <ImageView fitHeight="188.0" fitWidth="210.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="@avatar2.png" />
+                            </image>
+                        </ImageView>
+                        <Label fx:id="menoPouzivatelaLabel" alignment="CENTER" text="Uzivatel" textFill="#6a040f">
+                            <font>
+                                <Font name="System Bold Italic" size="15.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="levelLabel" text="Aktualny Level: x" textFill="#6a040f">
+                            <font>
+                                <Font name="System Bold" size="15.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="xpLabel" text="Pocet XP: xxx" textFill="#6a040f">
+                            <font>
+                                <Font name="System Bold" size="15.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </VBox>
+                <VBox maxWidth="1.7976931348623157E308" prefHeight="360.0" prefWidth="420.0" spacing="12.0" style="-fx-background-color: #6A040F;">
+                    <padding>
+                        <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+                    </padding>
+                    <children>
+                        <Label text="Nastavenia profilu" textFill="WHITE">
+                            <font>
+                                <Font name="System Bold Italic" size="15.0" />
+                            </font>
+                        </Label>
+                        <HBox spacing="10.0">
+                            <children>
+                                <Label text="Email:" textFill="WHITE" />
+                                <TextField fx:id="emailField" promptText="Email" HBox.hgrow="ALWAYS" />
+                                <Button mnemonicParsing="false" onAction="#ulozEmail" text="Ulozit email" />
+                            </children>
+                        </HBox>
+                        <HBox spacing="10.0">
+                            <children>
+                                <Label text="Heslo:" textFill="WHITE" />
+                                <Label fx:id="hesloMaskLabel" text="********" textFill="WHITE" />
+                                <TextField fx:id="hesloVisibleField" editable="false" managed="false" visible="false" HBox.hgrow="ALWAYS" />
+                                <ToggleButton fx:id="hesloToggleButton" mnemonicParsing="false" onAction="#prepniHesloZobrazenie" text="Zobrazit heslo" />
+                            </children>
+                        </HBox>
+                        <CheckBox fx:id="emailNotifikacieCheckBox" mnemonicParsing="false" onAction="#ulozNastavenia" text="Povolit email notifikacie" textFill="WHITE" />
+                        <CheckBox fx:id="statistickeUdajeCheckBox" mnemonicParsing="false" onAction="#ulozNastavenia" text="Povolit statisticke notifikacie" textFill="WHITE" />
+                        <ToggleButton fx:id="tmavyRezimToggle" mnemonicParsing="false" onAction="#ulozNastavenia" style="-fx-background-color: white;" text="Tmavy rezim" />
+                        <HBox spacing="10.0">
+                            <children>
+                                <Button mnemonicParsing="false" onAction="#otvorDialogZmenyHesla" style="-fx-background-color: white;" text="Zmenit heslo" />
+                                <Button mnemonicParsing="false" onAction="#odhlasSa" style="-fx-background-color: transparent;" text="Odhlasit sa" textFill="WHITE" />
+                            </children>
+                        </HBox>
+                        <Label fx:id="statusLabel" textFill="WHITE" />
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+    </center>
 </BorderPane>

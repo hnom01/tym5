@@ -60,6 +60,7 @@ public class DatabaseManager {
                     "datumVytvoreni DATE," +
                     "popis TEXT," +
                     "stav TEXT DEFAULT 'Aktivna'," +
+                    "xp INTEGER DEFAULT 15," +
                     "FOREIGN KEY(id_zakaznik) REFERENCES ZAKAZNIK(id_zakaznik)" +
                     ");";
             stmt.execute(sqlUkol);
@@ -103,10 +104,7 @@ public class DatabaseManager {
     }
 
     public static Optional<Pouzivatel> prihlasPouzivatela(String uzivatelskeJmeno, String heslo) {
-        if (uzivatelskeJmeno == null || uzivatelskeJmeno.isBlank() || heslo == null) {
-            return Optional.empty();
-        }
-
+        if (uzivatelskeJmeno == null || uzivatelskeJmeno.isBlank() || heslo == null) return Optional.empty();
         try {
             return nacitajPouzivatela(uzivatelskeJmeno.trim(), heslo);
         } catch (SQLException e) {
@@ -116,18 +114,12 @@ public class DatabaseManager {
     }
 
     public static Optional<Pouzivatel> registrujPouzivatela(String uzivatelskeJmeno, String heslo, String email) {
-        if (uzivatelskeJmeno == null || uzivatelskeJmeno.isBlank() || heslo == null || heslo.isBlank()) {
-            return Optional.empty();
-        }
-
+        if (uzivatelskeJmeno == null || uzivatelskeJmeno.isBlank() || heslo == null || heslo.isBlank()) return Optional.empty();
         String meno = uzivatelskeJmeno.trim();
         String emailHodnota = email == null ? null : email.trim();
 
         try {
-            if (existujePouzivatel(meno)) {
-                return Optional.empty();
-            }
-
+            if (existujePouzivatel(meno)) return Optional.empty();
             int idZakaznika = vytvorPouzivatela(meno, heslo, emailHodnota);
             return nacitajPouzivatelaPodlaId(idZakaznika);
         } catch (SQLException e) {
@@ -150,16 +142,12 @@ public class DatabaseManager {
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, idZakaznika);
-
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(nacitajZResultSetu(rs));
-                }
+                if (rs.next()) return Optional.of(nacitajZResultSetu(rs));
             }
         } catch (SQLException e) {
             System.out.println("Chyba pri nacitani pouzivatela: " + e.getMessage());
         }
-
         return Optional.empty();
     }
 
@@ -174,14 +162,10 @@ public class DatabaseManager {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, uzivatelskeJmeno);
             pstmt.setString(2, heslo);
-
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(nacitajZResultSetu(rs));
-                }
+                if (rs.next()) return Optional.of(nacitajZResultSetu(rs));
             }
         }
-
         return Optional.empty();
     }
 
@@ -189,11 +173,9 @@ public class DatabaseManager {
         String sql = "UPDATE ZAKAZNIK SET email = ? WHERE id_zakaznik = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            if (email == null || email.isBlank()) {
-                pstmt.setNull(1, java.sql.Types.VARCHAR);
-            } else {
-                pstmt.setString(1, email.trim());
-            }
+            if (email == null || email.isBlank()) pstmt.setNull(1, java.sql.Types.VARCHAR);
+            else pstmt.setString(1, email.trim());
+
             pstmt.setInt(2, idZakaznika);
             return pstmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -203,10 +185,7 @@ public class DatabaseManager {
     }
 
     public static boolean zmenHeslo(int idZakaznika, String stareHeslo, String noveHeslo) {
-        if (noveHeslo == null || noveHeslo.isBlank()) {
-            return false;
-        }
-
+        if (noveHeslo == null || noveHeslo.isBlank()) return false;
         String sql = "UPDATE ZAKAZNIK SET heslo = ? WHERE id_zakaznik = ? AND heslo = ?";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -246,19 +225,17 @@ public class DatabaseManager {
         }
     }
 
-    public static void pridejUkol(String nazev, String deadline, String popis) {
-        String sql = "INSERT INTO UKOL(nazev, deadline, datumVytvoreni, popis, id_zakaznik) VALUES(?,?,date('now'),?,?)";
-
+    public static void pridejUkol(String nazev, String deadline, String popis, int xp) {
+        String sql = "INSERT INTO UKOL(nazev, deadline, datumVytvoreni, popis, xp, id_zakaznik) VALUES(?,?,date('now'),?,?,?)";
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, nazev);
-            if (deadline == null || deadline.isBlank()) {
-                pstmt.setNull(2, java.sql.Types.DATE);
-            } else {
-                pstmt.setString(2, deadline);
-            }
+            if (deadline == null || deadline.isBlank()) pstmt.setNull(2, java.sql.Types.DATE);
+            else pstmt.setString(2, deadline);
+
             pstmt.setString(3, popis);
-            pstmt.setInt(4, aktualneIdZakaznika());
+            pstmt.setInt(4, xp);
+            pstmt.setInt(5, aktualneIdZakaznika());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Chyba pri ukladani: " + e.getMessage());
@@ -267,48 +244,103 @@ public class DatabaseManager {
 
     public static List<Uloha> nacitajUlohy() {
         List<Uloha> ulohy = new ArrayList<>();
-        String sql = "SELECT id_ukol, nazev, deadline, stav, popis FROM UKOL WHERE id_zakaznik = ? ORDER BY " +
+        String sql = "SELECT id_ukol, nazev, deadline, stav, popis, xp FROM UKOL WHERE id_zakaznik = ? ORDER BY " +
                 "CASE WHEN stav = 'Dokoncena' THEN 1 ELSE 0 END, " +
                 "CASE WHEN deadline IS NULL THEN 1 ELSE 0 END, deadline, id_ukol DESC";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, aktualneIdZakaznika());
-
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     LocalDate deadline = parseDeadline(rs.getString("deadline"));
                     ulohy.add(new Uloha(
-                            rs.getInt("id_ukol"),
-                            rs.getString("nazev"),
-                            deadline,
-                            rs.getString("stav"),
-                            rs.getString("popis")
+                            rs.getInt("id_ukol"), rs.getString("nazev"), deadline,
+                            rs.getString("stav"), rs.getString("popis"), rs.getInt("xp")
                     ));
                 }
             }
         } catch (SQLException e) {
             System.out.println("Chyba pri nacitani uloh: " + e.getMessage());
         }
-
         return ulohy;
     }
 
     public static void oznacAkoDokoncenu(int idUlohy) {
-        String sql = "UPDATE UKOL SET stav = 'Dokoncena' WHERE id_ukol = ?";
+        int ziskaneXp = 0;
+        String sqlSelectXp = "SELECT xp FROM UKOL WHERE id_ukol = ?";
+        String sqlUpdateUkol = "UPDATE UKOL SET stav = 'Dokoncena' WHERE id_ukol = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, idUlohy);
-            pstmt.executeUpdate();
+        try (Connection conn = getConnection()) {
+            try (PreparedStatement pstmtXp = conn.prepareStatement(sqlSelectXp)) {
+                pstmtXp.setInt(1, idUlohy);
+                try (ResultSet rs = pstmtXp.executeQuery()) {
+                    if (rs.next()) ziskaneXp = rs.getInt("xp");
+                }
+            }
+            try (PreparedStatement pstmtUpdate = conn.prepareStatement(sqlUpdateUkol)) {
+                pstmtUpdate.setInt(1, idUlohy);
+                pstmtUpdate.executeUpdate();
+            }
         } catch (SQLException e) {
             System.out.println("Chyba pri dokonceni ulohy: " + e.getMessage());
+            return;
+        }
+
+        if (ziskaneXp > 0) pridejXpUzivateli(aktualneIdZakaznika(), ziskaneXp);
+    }
+
+    private static void pridejXpUzivateli(int idZakaznika, int ziskaneXp) {
+        String sqlSelectZakaznik = "SELECT xp, level, herniMena FROM ZAKAZNIK WHERE id_zakaznik = ?";
+        String sqlUpdateZakaznik = "UPDATE ZAKAZNIK SET xp = ?, level = ?, herniMena = ? WHERE id_zakaznik = ?";
+
+        try (Connection conn = getConnection()) {
+            int aktualniXp = 0;
+            int aktualniLevel = 1;
+            int herniMena = 0;
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlSelectZakaznik)) {
+                pstmt.setInt(1, idZakaznika);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        aktualniXp = rs.getInt("xp");
+                        aktualniLevel = rs.getInt("level");
+                        herniMena = rs.getInt("herniMena");
+                    }
+                }
+            }
+
+            int noveXp = aktualniXp + ziskaneXp;
+            // Výpočet: 0-99 XP = Level 1, 100-199 = Level 2, atd.
+            int novyLevel = (noveXp / 100) + 1;
+            boolean levelUp = novyLevel > aktualniLevel;
+
+            if (levelUp) {
+                int pocetNovychLevelu = novyLevel - aktualniLevel;
+                herniMena += (50 * pocetNovychLevelu);
+            }
+
+            try (PreparedStatement pstmtUpdate = conn.prepareStatement(sqlUpdateZakaznik)) {
+                pstmtUpdate.setInt(1, noveXp);
+                pstmtUpdate.setInt(2, novyLevel);
+                pstmtUpdate.setInt(3, herniMena);
+                pstmtUpdate.setInt(4, idZakaznika);
+                pstmtUpdate.executeUpdate();
+            }
+
+            if (levelUp) {
+                System.out.println("GRATULUJEME! Level up! Aktualny level: " + novyLevel);
+            }
+
+            nacitajPouzivatelaPodlaId(idZakaznika).ifPresent(CurrentUserSession::setCurrentUser);
+
+        } catch (SQLException e) {
+            System.out.println("Chyba pri pridavani XP: " + e.getMessage());
         }
     }
 
     public static void predlzTermin(int idUlohy, LocalDate novyTermin) {
         String sql = "UPDATE UKOL SET deadline = ?, stav = CASE WHEN stav = 'Dokoncena' THEN stav ELSE 'Aktivna' END WHERE id_ukol = ?";
-
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, novyTermin.toString());
@@ -331,30 +363,22 @@ public class DatabaseManager {
     }
 
     private static int vytvorPouzivatela(String uzivatelskeJmeno, String heslo, String email) throws SQLException {
-        String insertZakaznik = "INSERT INTO ZAKAZNIK(uzivatelskeJmeno, heslo, email, xp, level, herniMena, pocetVolnychProdlouzeni) " +
-                "VALUES(?, ?, ?, 0, 1, 0, 3)";
-        String insertNastaveni = "INSERT INTO NASTAVENI(id_zakaznik, notifikace, notifikaceDeadline, notifikaceMesic, notifikaceTyden, lightMode) " +
-                "VALUES(?, 1, 1, 1, 1, 0)";
+        String insertZakaznik = "INSERT INTO ZAKAZNIK(uzivatelskeJmeno, heslo, email, xp, level, herniMena, pocetVolnychProdlouzeni) VALUES(?, ?, ?, 0, 1, 0, 3)";
+        String insertNastaveni = "INSERT INTO NASTAVENI(id_zakaznik, notifikace, notifikaceDeadline, notifikaceMesic, notifikaceTyden, lightMode) VALUES(?, 1, 1, 1, 1, 0)";
 
         try (Connection conn = getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement insertZakaznikStatement = conn.prepareStatement(insertZakaznik, Statement.RETURN_GENERATED_KEYS)) {
                 insertZakaznikStatement.setString(1, uzivatelskeJmeno);
                 insertZakaznikStatement.setString(2, heslo);
-                if (email == null || email.isBlank()) {
-                    insertZakaznikStatement.setNull(3, java.sql.Types.VARCHAR);
-                } else {
-                    insertZakaznikStatement.setString(3, email);
-                }
+                if (email == null || email.isBlank()) insertZakaznikStatement.setNull(3, java.sql.Types.VARCHAR);
+                else insertZakaznikStatement.setString(3, email);
                 insertZakaznikStatement.executeUpdate();
 
                 int generatedId;
                 try (ResultSet generatedKeys = insertZakaznikStatement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        generatedId = generatedKeys.getInt(1);
-                    } else {
-                        throw new SQLException("Nepodarilo sa ziskat ID noveho pouzivatela.");
-                    }
+                    if (generatedKeys.next()) generatedId = generatedKeys.getInt(1);
+                    else throw new SQLException("Nepodarilo sa ziskat ID noveho pouzivatela.");
                 }
 
                 try (PreparedStatement insertNastaveniStatement = conn.prepareStatement(insertNastaveni)) {
@@ -375,27 +399,14 @@ public class DatabaseManager {
 
     private static Pouzivatel nacitajZResultSetu(ResultSet rs) throws SQLException {
         return new Pouzivatel(
-                rs.getInt(1),
-                rs.getString(2),
-                rs.getString(3),
-                rs.getString(4),
-                rs.getInt(5),
-                rs.getInt(6),
-                rs.getInt(7),
-                rs.getInt(8),
-                rs.getInt(9) != 0,
-                rs.getInt(10) != 0,
-                rs.getInt(11) != 0,
-                rs.getInt(12) != 0,
-                rs.getInt(13) != 0
+                rs.getInt(1), rs.getString(2), rs.getString(3), rs.getString(4),
+                rs.getInt(5), rs.getInt(6), rs.getInt(7), rs.getInt(8),
+                rs.getInt(9) != 0, rs.getInt(10) != 0, rs.getInt(11) != 0, rs.getInt(12) != 0, rs.getInt(13) != 0
         );
     }
 
     private static LocalDate parseDeadline(String rawDeadline) {
-        if (rawDeadline == null || rawDeadline.isBlank()) {
-            return null;
-        }
-
+        if (rawDeadline == null || rawDeadline.isBlank()) return null;
         try {
             return LocalDate.parse(rawDeadline.trim());
         } catch (DateTimeParseException e) {
@@ -406,9 +417,6 @@ public class DatabaseManager {
 
     private static int aktualneIdZakaznika() {
         Pouzivatel aktualny = CurrentUserSession.getCurrentUser();
-        if (aktualny != null) {
-            return aktualny.getId();
-        }
-        return 1;
+        return (aktualny != null) ? aktualny.getId() : 1;
     }
 }
