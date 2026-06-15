@@ -24,10 +24,15 @@
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
          </padding>
          <children>
-            <Label style="-fx-font-weight: bold; -fx-font-style: italic;" text="Level X" textFill="WHITE" />
-            <Label text="XP: xxx" textFill="WHITE">
+            <Label fx:id="hornyLevelLabel" style="-fx-font-weight: bold; -fx-font-style: italic;" text="Level X" textFill="WHITE" />
+            <Label fx:id="hornyXpLabel" text="XP: xxx" textFill="WHITE">
                <font>
                   <Font name="System Bold Italic" size="12.0" />
+               </font>
+            </Label>
+            <Label fx:id="hornaMenaLabel" text="Mince: 0" textFill="#ffcc00">
+               <font>
+                  <Font name="System Bold" size="12.0" />
                </font>
             </Label>
             <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Obchod a šatník" textFill="WHITE" />

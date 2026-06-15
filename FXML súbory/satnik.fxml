@@ -11,125 +11,98 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="cz.vse.avatask.SatnikController">
+    <left>
+        <VBox alignment="CENTER" prefWidth="200.0" spacing="5.0" style="-fx-background-color: #6A040F;" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+            </padding>
+            <children>
+                <StackPane fx:id="avatarStackPane" prefHeight="281.0" prefWidth="188.0">
+                    <children>
+                        <ImageView fx:id="avatarBaseImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="avatarKabatImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="avatarSiltovkaImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="avatarKlobukImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="avatarOkuliareImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
+                    </children>
+                </StackPane>
+                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#obnovAvatar" style="-fx-font-weight: bold; -fx-background-color: white;" text="Uložiť vzhľad" textFill="#6a040f" />
+            </children>
+        </VBox>
+    </left>
+    <center>
+        <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+            <tabs>
+                <Tab text="Obchod">
+                    <content>
+                        <ScrollPane fitToHeight="true" fitToWidth="true">
+                            <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0">
+                                    <children>
+                                        <TilePane fx:id="obchodTilePane" hgap="10.0" vgap="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <padding>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                            </padding>
+                                        </TilePane>
+                                    </children>
+                                </AnchorPane>
+                            </content>
+                        </ScrollPane>
+                    </content>
+                </Tab>
+                <Tab text="Môj šatník">
+                    <content>
+                        <ScrollPane fitToHeight="true" fitToWidth="true">
+                            <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0">
+                                    <children>
+                                        <TilePane fx:id="satnikTilePane" hgap="10.0" vgap="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <padding>
+                                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                            </padding>
+                                        </TilePane>
+                                    </children>
+                                </AnchorPane>
+                            </content>
+                        </ScrollPane>
+                    </content>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+    <top>
+        <HBox alignment="CENTER_RIGHT" spacing="20.0" style="-fx-background-color: #6A040F;" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+            </padding>
+            <children>
+                <Label fx:id="levelLabel" style="-fx-font-weight: bold; -fx-font-style: italic;" text="Level X" textFill="WHITE" />
+                <Label fx:id="xpLabel" text="XP: xxx" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold Italic" size="12.0" />
+                    </font>
+                </Label>
+                <Label fx:id="menaLabel" text="Mena: xxx" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold Italic" size="12.0" />
+                    </font>
+                </Label>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
-   <left>
-      <VBox alignment="CENTER" prefWidth="200.0" spacing="5.0" style="-fx-background-color: #6A040F;" BorderPane.alignment="CENTER">
-         <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </padding>
-         <children>
-            <ImageView fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@avatar2.png" />
-               </image>
-            </ImageView>
-            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-font-weight: bold; -fx-background-color: white;" text="Uložiť vzhľad" textFill="#6a040f" />
-         </children>
-      </VBox>
-   </left>
-   <center>
-      <TabPane prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
-        <tabs>
-          <Tab text="Obchod">
-               <content>
-                  <ScrollPane fitToHeight="true" fitToWidth="true">
-                    <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0">
-                           <children>
-                              <TilePane hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                 <padding>
-                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                 </padding>
-                                 <children>
-                                    <VBox spacing="5.0" style="-fx-background-color: transparent; -fx-border-color: #6A040F; -fx-border-width: 2; -fx-border-radius: 5px;" TilePane.alignment="CENTER">
-                                       <padding>
-                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                       </padding>
-                                       <children>
-                                          <ImageView fitHeight="70.0" fitWidth="87.0" pickOnBounds="true" preserveRatio="true" />
-                                          <Label alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" text="Názov" textFill="#6a040f">
-                                             <font>
-                                                <Font name="System Italic" size="12.0" />
-                                             </font>
-                                          </Label>
-                                          <Label alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" text="Počet XP" textFill="#6a040f">
-                                             <font>
-                                                <Font name="System Bold" size="12.0" />
-                                             </font>
-                                          </Label>
-                                          <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-background-color: #6A040F; -fx-font-weight: bold;" text="Kúpiť" textFill="WHITE" VBox.vgrow="ALWAYS" />
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </TilePane>
-                           </children>
-                        </AnchorPane>
-                    </content>
-                  </ScrollPane>
-               </content>
-            </Tab>
-          <Tab text="Môj šatník">
-               <content>
-                  <ScrollPane fitToHeight="true" fitToWidth="true">
-                    <content>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0">
-                           <children>
-                              <TilePane hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                 <padding>
-                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                 </padding>
-                                 <children>
-                                    <VBox spacing="5.0" style="-fx-background-color: transparent; -fx-border-color: #6A040F; -fx-border-width: 2; -fx-border-radius: 5px;" TilePane.alignment="CENTER">
-                                       <padding>
-                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-                                       </padding>
-                                       <children>
-                                          <ImageView fitHeight="70.0" fitWidth="87.0" pickOnBounds="true" preserveRatio="true" />
-                                          <Label alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" text="Názov" textFill="#6a040f">
-                                             <font>
-                                                <Font name="System Italic" size="12.0" />
-                                             </font>
-                                          </Label>
-                                          <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" style="-fx-background-color: #6A040F; -fx-font-weight: bold;" text="Obliecť" textFill="WHITE" VBox.vgrow="ALWAYS" />
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </TilePane>
-                           </children>
-                        </AnchorPane>
-                    </content>
-                  </ScrollPane>
-               </content>
-            </Tab>
-        </tabs>
-      </TabPane>
-   </center>
-   <top>
-      <HBox alignment="CENTER_RIGHT" spacing="20.0" style="-fx-background-color: #6A040F;" BorderPane.alignment="CENTER">
-         <padding>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </padding>
-         <children>
-            <Label style="-fx-font-weight: bold; -fx-font-style: italic;" text="Level X" textFill="WHITE" />
-            <Label text="XP: xxx" textFill="WHITE">
-               <font>
-                  <Font name="System Bold Italic" size="12.0" />
-               </font>
-            </Label>
-            <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Obchod a šatník" textFill="WHITE" />
-            <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Štatistiky" textFill="WHITE" />
-            <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Môj profil" textFill="WHITE" />
-            <ImageView fitHeight="38.0" fitWidth="102.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="ALWAYS">
-               <image>
-                  <Image url="@avatask.png" />
-               </image>
-            </ImageView>
-         </children>
-      </HBox>
-   </top>
+                <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Obchod a šatník" textFill="WHITE" />
+                <Button mnemonicParsing="false" onAction="#otvorUlohy" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Úlohy" textFill="WHITE" />
+                <Button mnemonicParsing="false" onAction="#otvorProfil" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Môj profil" textFill="WHITE" />
+                <ImageView fitHeight="38.0" fitWidth="102.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="ALWAYS">
+                    <image>
+                        <Image url="@avatask.png" />
+                    </image>
+                </ImageView>
+            </children>
+        </HBox>
+    </top>
 </BorderPane>

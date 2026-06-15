@@ -5,7 +5,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
@@ -25,9 +24,6 @@ public class NovaUlohaController {
     private TextField popisUlohy;
 
     @FXML
-    private ComboBox<String> obtiznostUlohy;
-
-    @FXML
     private void initialize() {
         deadlineUlohy.setDayCellFactory(datePicker -> new DateCell() {
             @Override
@@ -36,17 +32,6 @@ public class NovaUlohaController {
                 setDisable(empty || item.isBefore(LocalDate.now()));
             }
         });
-
-        if (obtiznostUlohy != null) {
-            obtiznostUlohy.getItems().addAll(
-                    "Veľmi ľahká (5 XP)",
-                    "Ľahká (10 XP)",
-                    "Stredná (15 XP)",
-                    "Ťažká (20 XP)",
-                    "Veľmi ťažká (25 XP)"
-            );
-            obtiznostUlohy.setValue("Stredná (15 XP)");
-        }
     }
 
     @FXML
@@ -56,7 +41,7 @@ public class NovaUlohaController {
     }
 
     @FXML
-    public void ulozUlohu() {
+    public void ulozUlohu(ActionEvent event) {
         String nazev = nazevUlohy.getText();
         String popis = popisUlohy.getText();
 
@@ -71,20 +56,14 @@ public class NovaUlohaController {
             return;
         }
 
-        int xpUlohy = 15;
-        if (obtiznostUlohy != null && obtiznostUlohy.getValue() != null) {
-            switch (obtiznostUlohy.getValue()) {
-                case "Veľmi ľahká (5 XP)": xpUlohy = 5; break;
-                case "Ľahká (10 XP)": xpUlohy = 10; break;
-                case "Stredná (15 XP)": xpUlohy = 15; break;
-                case "Ťažká (20 XP)": xpUlohy = 20; break;
-                case "Veľmi ťažká (25 XP)": xpUlohy = 25; break;
-            }
-        }
-
         String deadlineText = deadline == null ? "" : deadline.toString();
-        DatabaseManager.pridejUkol(nazev.trim(), deadlineText, popis.trim(), xpUlohy);
-        zavriOkno();
+
+        int zakladneXp = 20;
+
+        DatabaseManager.pridejUkol(nazev.trim(), deadlineText, popis.trim(), zakladneXp);
+
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.close();
     }
 
     private void zobrazChybu(String sprava) {

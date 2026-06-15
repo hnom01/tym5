@@ -7,8 +7,9 @@ public class Pouzivatel {
     private final String email;
     private final int xp;
     private final int level;
-    private final int herniMena;
-    private final int pocetVolnychProdlouzeni;
+    private int herniMena;
+    private int pocetVolnychProdlouzeni;
+    private final String pohlavie;
     private final boolean notifikace;
     private final boolean notifikaceDeadline;
     private final boolean notifikaceMesic;
@@ -16,7 +17,7 @@ public class Pouzivatel {
     private final boolean lightMode;
 
     public Pouzivatel(int id, String uzivatelskeMeno, String heslo, String email, int xp, int level, int herniMena,
-                      int pocetVolnychProdlouzeni, boolean notifikace, boolean notifikaceDeadline,
+                      int pocetVolnychProdlouzeni, String pohlavie, boolean notifikace, boolean notifikaceDeadline,
                       boolean notifikaceMesic, boolean notifikaceTyden, boolean lightMode) {
         this.id = id;
         this.uzivatelskeMeno = uzivatelskeMeno;
@@ -26,6 +27,7 @@ public class Pouzivatel {
         this.level = level;
         this.herniMena = herniMena;
         this.pocetVolnychProdlouzeni = pocetVolnychProdlouzeni;
+        this.pohlavie = pohlavie;
         this.notifikace = notifikace;
         this.notifikaceDeadline = notifikaceDeadline;
         this.notifikaceMesic = notifikaceMesic;
@@ -65,6 +67,10 @@ public class Pouzivatel {
         return pocetVolnychProdlouzeni;
     }
 
+    public String getPohlavie() {
+        return pohlavie;
+    }
+
     public boolean isNotifikace() {
         return notifikace;
     }
@@ -83,5 +89,13 @@ public class Pouzivatel {
 
     public boolean isLightMode() {
         return lightMode;
+    }
+
+    public void setHerniMena(int herniMena) {
+        this.herniMena = herniMena;
+    }
+
+    public void setPocetVolnychProdlouzeni(int pocetVolnychProdlouzeni) {
+        this.pocetVolnychProdlouzeni = pocetVolnychProdlouzeni;
     }
 }
