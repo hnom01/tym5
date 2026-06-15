@@ -19,6 +19,7 @@ public class Main extends Application {
 
         stage.setTitle("Avatask - Prihlasenie");
         stage.setScene(new Scene(root));
+        stage.setMaximized(true);
         stage.show();
     }
 }

@@ -383,7 +383,6 @@ public class DatabaseManager {
     }
 
     public static boolean oznacAkoDokoncenu(int idUlohy) {
-        // Přidáno vytažení 'deadline' z DB
         String selectSql = "SELECT xp_odmena, id_zakaznik, deadline FROM UKOL WHERE id_ukol = ? AND stav != 'Dokoncena'";
         int xpNaPripisanie = 0;
         int idZakaznika = -1;
@@ -416,7 +415,6 @@ public class DatabaseManager {
             System.out.println("Chyba pri dokonceni ulohy: " + e.getMessage());
         }
 
-        // Volání připisovací metody nově i s deadlinem
         return pripisXpPouzivatelovi(idZakaznika, xpNaPripisanie, deadline);
     }
 
@@ -987,17 +985,14 @@ public class DatabaseManager {
     }
 
     private static boolean pripisXpPouzivatelovi(int idZakaznika, int pridaneXp, LocalDate deadline) {
-        // 1. Výpočet zpoždění (pokud je po deadlinu)
         long dnyZpozdeni = 0;
         if (deadline != null && LocalDate.now().isAfter(deadline)) {
             dnyZpozdeni = ChronoUnit.DAYS.between(deadline, LocalDate.now());
         }
 
-        // 2. Penalizace XP: -2 XP za každý den zpoždění, nesmí jít pod 0
         int penalizaceXp = (int) (dnyZpozdeni * 2);
         int finalniPridaneXp = Math.max(0, pridaneXp - penalizaceXp);
 
-        // 3. Penalizace herní měny: -2 za každý den, maximálně však limit -10 mincí
         int penalizaceMena = (int) Math.min(10, dnyZpozdeni * 2);
 
         String selectSql = "SELECT xp, level, herniMena FROM ZAKAZNIK WHERE id_zakaznik = ?";
@@ -1020,7 +1015,6 @@ public class DatabaseManager {
             return false;
         }
 
-        // 4. Aplikace penalizace měny (Math.max brání pádu měny do minusu)
         aktualnaMena = Math.max(0, aktualnaMena - penalizaceMena);
 
         int noveXp = aktualneXp + finalniPridaneXp;

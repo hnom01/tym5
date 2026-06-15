@@ -266,8 +266,7 @@ public class ProfilController {
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setTitle("Avatask - Prihlasenie");
-        stage.setScene(new Scene(root));
-        stage.show();
+        stage.getScene().setRoot(root);
     }
 
     private void nacitajProfil() {
@@ -308,8 +307,7 @@ public class ProfilController {
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setTitle("Avatask - Obchod a satnik");
-        stage.setScene(new Scene(root));
-        stage.show();
+        stage.getScene().setRoot(root);
     }
 
     private void aktualizujHesloZobrazenie() {

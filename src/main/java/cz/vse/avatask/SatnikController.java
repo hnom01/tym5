@@ -86,8 +86,7 @@ public class SatnikController {
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setTitle("Avatask - Profil");
-        stage.setScene(new Scene(root));
-        stage.show();
+        stage.getScene().setRoot(root);
     }
 
     @FXML
@@ -97,8 +96,7 @@ public class SatnikController {
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setTitle("Avatask - Ulohy");
-        stage.setScene(new Scene(root));
-        stage.show();
+        stage.getScene().setRoot(root);
     }
 
     private void obnovVsetko() {
