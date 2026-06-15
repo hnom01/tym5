@@ -18,6 +18,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.time.temporal.ChronoUnit;
 
 public class DatabaseManager {
     private static final String DB_URL = "jdbc:sqlite:avatask.db";
@@ -339,23 +340,26 @@ public class DatabaseManager {
     }
 
     public static boolean oznacAkoDokoncenu(int idUlohy) {
-        String selectSql = "SELECT xp_odmena, id_zakaznik FROM UKOL WHERE id_ukol = ? AND stav != 'Dokoncena'";
+        // Přidáno vytažení 'deadline' z DB
+        String selectSql = "SELECT xp_odmena, id_zakaznik, deadline FROM UKOL WHERE id_ukol = ? AND stav != 'Dokoncena'";
         int xpNaPripisanie = 0;
         int idZakaznika = -1;
+        LocalDate deadline = null;
 
         try (Connection conn = getConnection();
-                PreparedStatement selectPstmt = conn.prepareStatement(selectSql)) {
-                selectPstmt.setInt(1, idUlohy);
-                try (ResultSet rs = selectPstmt.executeQuery()) {
-                    if (rs.next()) {
-                        xpNaPripisanie = rs.getInt("xp_odmena");
-                        idZakaznika = rs.getInt("id_zakaznik");
-                    }
+             PreparedStatement selectPstmt = conn.prepareStatement(selectSql)) {
+            selectPstmt.setInt(1, idUlohy);
+            try (ResultSet rs = selectPstmt.executeQuery()) {
+                if (rs.next()) {
+                    xpNaPripisanie = rs.getInt("xp_odmena");
+                    idZakaznika = rs.getInt("id_zakaznik");
+                    deadline = parseDeadline(rs.getString("deadline")); // Načtení uloženého deadlinu
                 }
-            } catch (SQLException e) {
-                System.out.println("Chyba pri zistovani XP: " + e.getMessage());
-                return false;
             }
+        } catch (SQLException e) {
+            System.out.println("Chyba pri zistovani XP: " + e.getMessage());
+            return false;
+        }
 
         if (idZakaznika == -1) return false;
 
@@ -369,7 +373,8 @@ public class DatabaseManager {
             System.out.println("Chyba pri dokonceni ulohy: " + e.getMessage());
         }
 
-        return pripisXpPouzivatelovi(idZakaznika, xpNaPripisanie);
+        // Volání připisovací metody nově i s deadlinem
+        return pripisXpPouzivatelovi(idZakaznika, xpNaPripisanie, deadline);
     }
 
     public static void predlzTermin(int idUlohy, LocalDate novyTermin) {
@@ -938,7 +943,20 @@ public class DatabaseManager {
         }
     }
 
-    private static boolean pripisXpPouzivatelovi(int idZakaznika, int pridaneXp) {
+    private static boolean pripisXpPouzivatelovi(int idZakaznika, int pridaneXp, LocalDate deadline) {
+        // 1. Výpočet zpoždění (pokud je po deadlinu)
+        long dnyZpozdeni = 0;
+        if (deadline != null && LocalDate.now().isAfter(deadline)) {
+            dnyZpozdeni = ChronoUnit.DAYS.between(deadline, LocalDate.now());
+        }
+
+        // 2. Penalizace XP: -2 XP za každý den zpoždění, nesmí jít pod 0
+        int penalizaceXp = (int) (dnyZpozdeni * 2);
+        int finalniPridaneXp = Math.max(0, pridaneXp - penalizaceXp);
+
+        // 3. Penalizace herní měny: -2 za každý den, maximálně však limit -10 mincí
+        int penalizaceMena = (int) Math.min(10, dnyZpozdeni * 2);
+
         String selectSql = "SELECT xp, level, herniMena FROM ZAKAZNIK WHERE id_zakaznik = ?";
         int aktualneXp = 0;
         int aktualnyLevel = 1;
@@ -959,10 +977,14 @@ public class DatabaseManager {
             return false;
         }
 
-        int noveXp = aktualneXp + pridaneXp;
+        // 4. Aplikace penalizace měny (Math.max brání pádu měny do minusu)
+        aktualnaMena = Math.max(0, aktualnaMena - penalizaceMena);
+
+        int noveXp = aktualneXp + finalniPridaneXp;
         boolean levelUp = false;
 
-        while (noveXp >= aktualnyLevel*100) {
+        // 5. Výpočet level-upu (Přidání 50 herní měny za každý nový level)
+        while (noveXp >= aktualnyLevel * 100) {
             aktualnyLevel++;
             aktualnaMena += aktualnyLevel * 50;
             levelUp = true;
