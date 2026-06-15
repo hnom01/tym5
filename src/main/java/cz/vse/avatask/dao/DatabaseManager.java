@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.time.temporal.ChronoUnit;
+import java.time.YearMonth;
 
 public class DatabaseManager {
     private static final String DB_URL = "jdbc:sqlite:avatask.db";
@@ -104,6 +105,12 @@ public class DatabaseManager {
                     ");";
             stmt.execute(sqlAvatar);
 
+            String sqlSystemConfig = "CREATE TABLE IF NOT EXISTS SYSTEM_CONFIG (" +
+                    "klic TEXT PRIMARY KEY," +
+                    "hodnota TEXT" +
+                    ");";
+            stmt.execute(sqlSystemConfig);
+
             pridajStlpecAkChyba(conn, "ZAKAZNIK", "pohlavie", "TEXT DEFAULT 'MUZ'");
 
             // OPRAVA: Poistka pre existujúce databázy
@@ -111,8 +118,44 @@ public class DatabaseManager {
 
             zaktivujZakladnyShop(conn);
             stmt.executeUpdate("UPDATE UKOL SET deadline = NULL WHERE deadline = '' OR TRIM(deadline) = ''");
+            kontrolujAResetujVolnaProdlouzeni(conn);
         } catch (SQLException e) {
             System.out.println("Chyba pri praci s databazou: " + e.getMessage());
+        }
+    }
+
+    private static void kontrolujAResetujVolnaProdlouzeni(Connection conn) throws SQLException {
+        // Získání aktuálního roku a měsíce ve formátu "YYYY-MM" (např. "2026-06")
+        String aktualniMesic = YearMonth.now().toString();
+        String posledniResetMesic = null;
+
+        // Načtení hodnoty, kdy byl reset proveden naposledy
+        String selectSql = "SELECT hodnota FROM SYSTEM_CONFIG WHERE klic = 'posledni_reset_mesic'";
+        try (PreparedStatement pstmt = conn.prepareStatement(selectSql);
+             ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                posledniResetMesic = rs.getString("hodnota");
+            }
+        }
+
+        // Pokud záznam neexistuje (první spuštění) nebo se aktuální měsíc liší od uloženého
+        if (posledniResetMesic == null || !posledniResetMesic.equals(aktualniMesic)) {
+
+            // 1. Resetování počtu volných prodloužení všem uživatelům na 3
+            String updateUsersSql = "UPDATE ZAKAZNIK SET pocetVolnychProdlouzeni = 3";
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(updateUsersSql);
+            }
+
+            // 2. Uložení/Aktualizace aktuálního měsíce jako měsíce posledního resetu
+            String saveConfigSql = "INSERT INTO SYSTEM_CONFIG (klic, hodnota) VALUES ('posledni_reset_mesic', ?) " +
+                    "ON CONFLICT(klic) DO UPDATE SET hodnota = excluded.hodnota";
+            try (PreparedStatement pstmt = conn.prepareStatement(saveConfigSql)) {
+                pstmt.setString(1, aktualniMesic);
+                pstmt.executeUpdate();
+            }
+
+            System.out.println("Byl úspěšně proveden měsíční reset volných prodloužení deadlinu.");
         }
     }
 
