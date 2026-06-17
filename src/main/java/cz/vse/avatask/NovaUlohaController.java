@@ -24,7 +24,11 @@ public class NovaUlohaController {
     private TextField popisUlohy;
 
     @FXML
+    private javafx.scene.control.ComboBox<String> obtiaznostCombo;
+
+    @FXML
     private void initialize() {
+        deadlineUlohy.setEditable(false);
         deadlineUlohy.setDayCellFactory(datePicker -> new DateCell() {
             @Override
             public void updateItem(LocalDate item, boolean empty) {
@@ -32,6 +36,9 @@ public class NovaUlohaController {
                 setDisable(empty || item.isBefore(LocalDate.now()));
             }
         });
+        obtiaznostCombo.getItems().clear();
+        obtiaznostCombo.getItems().addAll("Ľahká", "Stredná", "Ťažká");
+        obtiaznostCombo.setValue("Ľahká");
     }
 
     @FXML
@@ -51,16 +58,28 @@ public class NovaUlohaController {
         }
 
         LocalDate deadline = deadlineUlohy.getValue();
-        if (deadline != null && deadline.isBefore(LocalDate.now())) {
-            zobrazChybu("Termin ulohy nemoze byt skor ako dnesny datum.");
+        if (deadline == null) {
+            zobrazChybu("Termín úlohy musí byť vyplnený. Vyberte dátum z kalendára.");
+            return;
+        }
+        if (deadline.isBefore(LocalDate.now())) {
+            zobrazChybu("Termín úlohy nemôže byť skôr ako dnešný dátum.");
             return;
         }
 
-        String deadlineText = deadline == null ? "" : deadline.toString();
+        String deadlineText = deadline.toString();
 
-        int zakladneXp = 20;
+        String obtiaznost = obtiaznostCombo.getValue();
+        if (obtiaznost == null) obtiaznost = "Ľahká";
 
-        DatabaseManager.pridejUkol(nazev.trim(), deadlineText, popis.trim(), zakladneXp);
+        int zakladneXp = switch (obtiaznost) {
+            case "Ľahká" -> 20;
+            case "Stredná" -> 50;
+            case "Ťažká" -> 75;
+            default -> 20;
+        };
+
+        DatabaseManager.pridejUkol(nazev.trim(), deadlineText, popis.trim(), zakladneXp, obtiaznost);
 
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.close();
@@ -74,8 +93,4 @@ public class NovaUlohaController {
         alert.showAndWait();
     }
 
-    private void zavriOkno() {
-        Stage stage = (Stage) nazevUlohy.getScene().getWindow();
-        stage.close();
-    }
 }

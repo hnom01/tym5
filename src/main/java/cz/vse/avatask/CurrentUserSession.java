@@ -19,6 +19,4 @@ public final class CurrentUserSession {
     public static void clear() {
         currentUser = null;
     }
-    private int mena; // Změň název podle potřeby
-
 }

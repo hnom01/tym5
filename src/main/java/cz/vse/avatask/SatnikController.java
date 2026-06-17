@@ -43,7 +43,7 @@ public class SatnikController {
     private ImageView avatarBaseImageView;
 
     @FXML
-    private ImageView avatarKabatImageView;
+    private ImageView avatarNahrdelnikImageView;
 
     @FXML
     private ImageView avatarSiltovkaImageView;
@@ -72,12 +72,27 @@ public class SatnikController {
     @FXML
     private void initialize() {
         obnovVsetko();
+
+        javafx.application.Platform.runLater(() -> {
+            if (obchodTilePane != null && obchodTilePane.getScene() != null) {
+                ThemeManager.aplikujTemu(obchodTilePane.getScene());
+            }
+        });
     }
 
     @FXML
     private void obnovAvatar(ActionEvent event) {
         obnovAvatar();
     }
+
+    @FXML
+    private Label hornyLevelLabel;
+
+    @FXML
+    private Label hornyXpLabel;
+
+    @FXML
+    private Label hornaMenaLabel;
 
     @FXML
     private void otvorProfil(ActionEvent event) throws IOException {
@@ -123,6 +138,9 @@ public class SatnikController {
         obnovAvatar();
         obnovObchod();
         obnovSatnik();
+        if (hornyLevelLabel != null) hornyLevelLabel.setText("Level " + pouzivatel.getLevel());
+        if (hornyXpLabel != null) hornyXpLabel.setText("XP: " + pouzivatel.getXp());
+        if (hornaMenaLabel != null) hornaMenaLabel.setText("Mena: " + pouzivatel.getHerniMena());
     }
 
     private void obnovObchod() {
@@ -163,21 +181,20 @@ public class SatnikController {
         Label nazovLabel = new Label(predmet.nazov());
         nazovLabel.setWrapText(true);
         nazovLabel.setAlignment(Pos.CENTER);
-        nazovLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #6A040F; -fx-font-size: 13px;");
-
+        nazovLabel.getStyleClass().add("nadpis-text");
+        nazovLabel.setStyle("-fx-font-size: 13px;");
         Label popisLabel = new Label(predmet.popis() == null || predmet.popis().isBlank()
                 ? ""
                 : predmet.popis().trim());
         popisLabel.setWrapText(true);
         popisLabel.setAlignment(Pos.CENTER);
-        popisLabel.setStyle("-fx-text-fill: #7a5960; -fx-font-size: 11px;");
-
+        popisLabel.getStyleClass().add("hlavny-text");
+        popisLabel.setStyle("-fx-font-size: 11px;");
         Label cenaLabel = new Label("Cena: " + predmet.cena());
-        cenaLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #6A040F;");
-
-        Button akciaButton = new Button(obchod ? "Kupit" : "Obliect");
+        cenaLabel.getStyleClass().add("nadpis-text");
+        Button akciaButton = new Button(obchod ? "Kúpiť" : "Obliecť");
         akciaButton.setMaxWidth(Double.MAX_VALUE);
-        akciaButton.setStyle("-fx-background-color: #6A040F; -fx-text-fill: white; -fx-font-weight: bold;");
+        akciaButton.getStyleClass().add("primary-button");
         akciaButton.setOnAction(event -> {
             AkciaVysledok vysledok = obchod
                     ? DatabaseManager.nakupPredmet(aktualneIdPouzivatela(), predmet.id())
@@ -191,16 +208,35 @@ public class SatnikController {
             }
         });
 
-        VBox karta = new VBox(8, imageView, nazovLabel, popisLabel, cenaLabel, akciaButton);
+        Node akciaPrvok;
+        if (!obchod) {
+            Button vyzliecButton = new Button("Vyzliecť");
+            vyzliecButton.setMaxWidth(Double.MAX_VALUE);
+            vyzliecButton.getStyleClass().add("primary-button");
+            vyzliecButton.setOnAction(event -> {
+                AkciaVysledok vysledok = DatabaseManager.vyzlecPredmet(aktualneIdPouzivatela(), predmet.id());
+                if (vysledok.uspesne()) {
+                    zobrazInfo(vysledok.sprava());
+                    obnovVsetko();
+                } else {
+                    zobrazChybu(vysledok.sprava());
+                }
+            });
+            HBox tlacidla = new HBox(6, akciaButton, vyzliecButton);
+            HBox.setHgrow(akciaButton, javafx.scene.layout.Priority.ALWAYS);
+            HBox.setHgrow(vyzliecButton, javafx.scene.layout.Priority.ALWAYS);
+            tlacidla.setMaxWidth(Double.MAX_VALUE);
+            akciaPrvok = tlacidla;
+        } else {
+            akciaPrvok = akciaButton;
+        }
+
+        VBox karta = new VBox(8, imageView, nazovLabel, popisLabel, cenaLabel, akciaPrvok);
         karta.setAlignment(Pos.CENTER);
         karta.setPadding(new Insets(12));
         karta.setPrefWidth(180);
-        karta.setStyle(
-                "-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fff8f8, #ffffff);" +
-                        "-fx-border-color: #d8a2ab;" +
-                        "-fx-border-width: 1.5;" +
-                        "-fx-border-radius: 16;" +
-                        "-fx-background-radius: 16;"
+        karta.getStyleClass().add("karta-pozadie");
+        karta.setStyle("-fx-border-width: 1.5; -fx-border-radius: 16; -fx-background-radius: 16;"
         );
         return karta;
     }
@@ -211,7 +247,7 @@ public class SatnikController {
             return;
         }
 
-        AvatarRenderer.vykresliAvatar(avatarBaseImageView, avatarKabatImageView, avatarSiltovkaImageView,
+        AvatarRenderer.vykresliAvatar(avatarBaseImageView, avatarNahrdelnikImageView, avatarSiltovkaImageView,
                 avatarKlobukImageView, avatarOkuliareImageView, pouzivatelOpt.get());
     }
 
@@ -240,5 +276,18 @@ public class SatnikController {
         alert.setHeaderText(null);
         alert.setContentText(sprava);
         alert.showAndWait();
+    }
+
+    @FXML
+    private void otvorSatnik(ActionEvent event) {
+        obnovVsetko();
+    }
+    @FXML
+    private void otvorStatistiky(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML_files/stats.fxml"));
+        Parent root = loader.load();
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setTitle("Avatask - Statistiky");
+        stage.getScene().setRoot(root);
     }
 }

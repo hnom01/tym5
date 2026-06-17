@@ -40,20 +40,20 @@ public final class AvatarRenderer {
      */
     private static final Map<String, Map<String, AvatarUmiestnenie>> UMIESTNENIA_OBLECENIA = Map.of(
             "HLAVA_KLOBUK", Map.of(
-                    "MUZ", new AvatarUmiestnenie(185, 185, 0, -131),
-                    "ZENA", new AvatarUmiestnenie(185, 185, 0, -134)
+                    "MUZ", new AvatarUmiestnenie(55, 55, 0, -86),
+                    "ZENA", new AvatarUmiestnenie(55, 55, 0, -86)
             ),
             "HLAVA_SILTOVKA", Map.of(
-                    "MUZ", new AvatarUmiestnenie(175, 175, 0, -110),
-                    "ZENA", new AvatarUmiestnenie(175, 175, 0, -113)
+                    "MUZ", new AvatarUmiestnenie(40, 40, 0, -84),
+                    "ZENA", new AvatarUmiestnenie(43, 43, 0, -85)
             ),
             "TVAR_OKULIARE", Map.of(
-                    "MUZ", new AvatarUmiestnenie(140, 140, 0, -72),
-                    "ZENA", new AvatarUmiestnenie(140, 140, 0, -74)
+                    "MUZ", new AvatarUmiestnenie(30, 30, 0, -72),
+                    "ZENA", new AvatarUmiestnenie(33, 33, 0, -70)
             ),
-            "TELO_KABAT", Map.of(
-                    "MUZ", new AvatarUmiestnenie(245, 245, 0, 10),
-                    "ZENA", new AvatarUmiestnenie(245, 245, 0, 10)
+            "KRK_NAHRDELNIK", Map.of(
+                    "MUZ", new AvatarUmiestnenie(29, 29, 0, -36),
+                    "ZENA", new AvatarUmiestnenie(29, 29, 0, -36)
             )
     );
 
@@ -61,7 +61,7 @@ public final class AvatarRenderer {
      * Vykresli zakladnu postavu a vsetky vybavene predmety pre dany ImageView-set.
      * Ktorykolvek z ImageView parametrov moze byt null, ak dana obrazovka danu vrstvu nema.
      */
-    public static void vykresliAvatar(ImageView base, ImageView kabat, ImageView siltovka,
+    public static void vykresliAvatar(ImageView base, ImageView nahrdelnik, ImageView siltovka,
                                        ImageView klobuk, ImageView okuliare, Pouzivatel pouzivatel) {
         if (pouzivatel == null) {
             return;
@@ -73,7 +73,7 @@ public final class AvatarRenderer {
         if (base != null) {
             base.setImage(nacitajObrazok(spravnyZaklad(pohlavie)));
         }
-        nastavPrekrytie(kabat, avatar == null ? null : avatar.idBoty(), pohlavie);
+        nastavPrekrytie(nahrdelnik, avatar == null ? null : avatar.idBoty(), pohlavie);
         nastavPrekrytie(siltovka, avatar == null ? null : avatar.idNohy(), pohlavie);
         nastavPrekrytie(klobuk, avatar == null ? null : avatar.idHlava(), pohlavie);
         nastavPrekrytie(okuliare, avatar == null ? null : avatar.idTelo(), pohlavie);

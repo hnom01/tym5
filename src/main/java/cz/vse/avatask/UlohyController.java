@@ -1,6 +1,7 @@
 package cz.vse.avatask;
 
 import cz.vse.avatask.dao.DatabaseManager;
+import cz.vse.avatask.model.AkciaVysledok;
 import cz.vse.avatask.model.Pouzivatel;
 import cz.vse.avatask.model.Uloha;
 import javafx.collections.FXCollections;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.List;
 
 public class UlohyController {
     private static final String NOVA_ULOHA_FXML = "/FXML_files/nova_uloha.fxml";
@@ -33,7 +35,10 @@ public class UlohyController {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     @FXML
-    private ListView<Uloha> ulohyList;
+    private ListView<Uloha> aktivneUlohyList;
+
+    @FXML
+    private ListView<Uloha> dokonceneUlohyList;
 
     @FXML
     private Label menoPouzivatelaLabel;
@@ -42,7 +47,7 @@ public class UlohyController {
     private ImageView avatarBaseImageView;
 
     @FXML
-    private ImageView avatarKabatImageView;
+    private ImageView avatarNahrdelnikImageView;
 
     @FXML
     private ImageView avatarSiltovkaImageView;
@@ -63,10 +68,7 @@ public class UlohyController {
     private Label hornaMenaLabel;
 
     @FXML
-    private Label kartaXpLabel;
-
-    @FXML
-    private Label kartaLevelLabel;
+    private Label volnePredlzeniaLabel;
 
     @FXML
     private javafx.scene.control.ProgressBar xpProgressBar;
@@ -76,11 +78,18 @@ public class UlohyController {
 
     @FXML
     private void initialize() {
-        ulohyList.setCellFactory(listView -> new UlohaCell());
+        if (aktivneUlohyList != null) aktivneUlohyList.setCellFactory(listView -> new UlohaCell());
+        if (dokonceneUlohyList != null) dokonceneUlohyList.setCellFactory(listView -> new UlohaCell());
         obnovZoznamUloh();
         obnovPouzivatela();
         obnovAvatar();
         aktualizujStatistiky();
+
+        javafx.application.Platform.runLater(() -> {
+            if (aktivneUlohyList != null && aktivneUlohyList.getScene() != null) {
+                ThemeManager.aplikujTemu(aktivneUlohyList.getScene());
+            }
+        });
     }
 
     public void setPouzivatel(String menoPouzivatela) {
@@ -102,7 +111,7 @@ public class UlohyController {
             return;
         }
 
-        AvatarRenderer.vykresliAvatar(avatarBaseImageView, avatarKabatImageView, avatarSiltovkaImageView,
+        AvatarRenderer.vykresliAvatar(avatarBaseImageView, avatarNahrdelnikImageView, avatarSiltovkaImageView,
                 avatarKlobukImageView, avatarOkuliareImageView, pouzivatel);
     }
 
@@ -141,9 +150,13 @@ public class UlohyController {
     }
 
     private void obnovZoznamUloh() {
-        if (ulohyList != null) {
-            ulohyList.setItems(FXCollections.observableArrayList(DatabaseManager.nacitajUlohy()));
-        }
+        List<Uloha> vsetkyUlohy = DatabaseManager.nacitajUlohy();
+
+        List<Uloha> aktivne = vsetkyUlohy.stream().filter(u -> !u.jeDokoncena()).toList();
+        List<Uloha> dokoncene = vsetkyUlohy.stream().filter(Uloha::jeDokoncena).toList();
+
+        if (aktivneUlohyList != null) aktivneUlohyList.setItems(FXCollections.observableArrayList(aktivne));
+        if (dokonceneUlohyList != null) dokonceneUlohyList.setItems(FXCollections.observableArrayList(dokoncene));
     }
 
     private void aktualizujStatistiky() {
@@ -154,10 +167,8 @@ public class UlohyController {
             if (hornyLevelLabel != null) hornyLevelLabel.setText("Level " + aktualny.getLevel());
             if (hornyXpLabel != null) hornyXpLabel.setText("XP: " + aktualny.getXp());
             if (hornaMenaLabel != null) hornaMenaLabel.setText("Mena: " + aktualny.getHerniMena());
-
-            if (kartaLevelLabel != null) kartaLevelLabel.setText("Level " + aktualny.getLevel());
-            if (kartaXpLabel != null) kartaXpLabel.setText("XP: " + aktualny.getXp());
             if (menoPouzivatelaLabel != null) menoPouzivatelaLabel.setText(aktualny.getUzivatelskeMeno());
+            if (volnePredlzeniaLabel != null) volnePredlzeniaLabel.setText("Voľné predĺženia: " + aktualny.getPocetVolnychProdlouzeni());
 
             if (xpProgressBar != null) {
                 double spodnahranica = (aktualny.getLevel() - 1) * 100.0;
@@ -193,45 +204,73 @@ public class UlohyController {
             boolean oznacenaUloha = isSelected();
 
             Label nazovLabel = new Label(uloha.getNazov());
-            nazovLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #6A040F;");
+            nazovLabel.getStyleClass().add("nadpis-text");
+            nazovLabel.setStyle("-fx-font-size: 15px;");
+
+            Label upozorneniLabel = new Label();
+            if (!uloha.jeDokoncena() && uloha.getDeadline() != null && uloha.getDeadline().isBefore(LocalDate.now())) {
+                upozorneniLabel.setText("PO TERMÍNE!");
+                upozorneniLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-font-size: 11px;");
+            }
+            String textObtiaznosti = uloha.getObtiaznost() != null ? uloha.getObtiaznost() : "Ľahká";
+            Label obtiaznostLabel = new Label(textObtiaznosti);
+
+            String farbaPozadia = switch (textObtiaznosti) {
+                case "Stredná" -> "#ffeeba";
+                case "Ťažká" -> "#f5c6cb";
+                default -> "#d4edda";
+            };
+            obtiaznostLabel.setStyle("-fx-font-size: 11px; -fx-background-color: " + farbaPozadia + "; -fx-text-fill: black; -fx-padding: 2 6 2 6; -fx-background-radius: 6; -fx-font-weight: bold;");
+
+            HBox nazovBox = new HBox(10, nazovLabel, obtiaznostLabel);
+            nazovBox.setAlignment(Pos.CENTER_LEFT);
 
             Label deadlineLabel = new Label(formatujDeadline(uloha.getDeadline()));
-            deadlineLabel.setStyle(
-                    "-fx-font-size: 13px; " +
-                            "-fx-font-weight: bold; " +
-                            "-fx-text-fill: " + (oznacenaUloha ? "#8B0000" : "#C1121F") + ";"
-            );
+            deadlineLabel.getStyleClass().add(oznacenaUloha ? "nadpis-text" : "hlavny-text");
+            deadlineLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
 
-            Label stavLabel = new Label(uloha.jeDokoncena() ? "Dokoncena" : "Aktivna");
+            Label stavLabel = new Label(uloha.jeDokoncena() ? "Dokončená" : "Aktívna");
             stavLabel.setStyle(uloha.jeDokoncena()
                     ? "-fx-background-color: #d9f5e5; -fx-text-fill: #236b43; -fx-background-radius: 999; -fx-padding: 4 10 4 10; -fx-font-weight: bold;"
-                    : "-fx-background-color: #fce7ea; -fx-text-fill: #6A040F; -fx-background-radius: 999; -fx-padding: 4 10 4 10; -fx-font-weight: bold;");
+                    : "-fx-background-color: #fce7ea; -fx-text-fill: -fx-primary; -fx-background-radius: 999; -fx-padding: 4 10 4 10; -fx-font-weight: bold;");
 
             Button detailButton = new Button("Detail");
-            detailButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #6A040F; -fx-font-weight: bold; -fx-underline: true;");
+            detailButton.getStyleClass().add("nadpis-text");
+            detailButton.setStyle("-fx-background-color: transparent; -fx-underline: true;");
 
             Label popisLabel = new Label(formatujPopis(uloha.getPopis()));
             popisLabel.setWrapText(true);
             popisLabel.setVisible(false);
             popisLabel.setManaged(false);
-            popisLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #7a5960;");
+            popisLabel.getStyleClass().add("hlavny-text");
+            popisLabel.setStyle("-fx-font-size: 12px;");
 
             detailButton.setOnAction(event -> {
                 boolean zobrazene = !popisLabel.isVisible();
                 popisLabel.setVisible(zobrazene);
                 popisLabel.setManaged(zobrazene);
-                detailButton.setText(zobrazene ? "Skryt detail" : "Detail");
+                detailButton.setText(zobrazene ? "Skryť detail" : "Detail");
             });
 
             HBox metaRow = new HBox(8, deadlineLabel, stavLabel, detailButton);
             metaRow.setAlignment(Pos.CENTER_LEFT);
 
-            VBox infoBox = new VBox(8, nazovLabel, metaRow, popisLabel);
+
+            Label stavOpoždeníLabel = new Label();
+            if (uloha.jeDokoncena() && uloha.getDeadline() != null) {
+
+                if (uloha.getDatumDokonceni() != null && uloha.getDatumDokonceni().isAfter(uloha.getDeadline())) {
+                    stavOpoždeníLabel.setText("Odovzdané po deadline!");
+                    stavOpoždeníLabel.setStyle("-fx-text-fill: red; -fx-font-weight: bold; -fx-font-size: 11px;");
+                }
+            }
+
+            VBox infoBox = new VBox(8, nazovBox, metaRow, popisLabel, stavOpoždeníLabel, upozorneniLabel);
             infoBox.setAlignment(Pos.CENTER_LEFT);
 
             Button dokoncitButton = new Button("Dokoncit");
             dokoncitButton.setDisable(uloha.jeDokoncena());
-            dokoncitButton.setStyle("-fx-background-color: #6A040F; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 8 14 8 14;");
+            dokoncitButton.setStyle("-fx-background-color: -fx-primary; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 8 14 8 14;");
             dokoncitButton.setOnAction(event -> {
                 boolean bolLevelUp = DatabaseManager.oznacAkoDokoncenu(uloha.getId());
 
@@ -243,58 +282,60 @@ public class UlohyController {
                     alert.showAndWait();
                 }
 
-                DatabaseManager.oznacAkoDokoncenu(uloha.getId());
-                // Zavolá metodu pro změnu stavu v databázi na "Dokoncena"
-                DatabaseManager.dokonciUlohu(uloha.getId());
-
-                // Okamžitě aktualizuje seznam úkolů na obrazovce
                 obnovZoznamUloh();
                 aktualizujStatistiky();
             });
-            Button predlzitButton = new Button("Predlzit +1 den");
+            Button predlzitButton = new Button("Predĺžiť +1 den");
             predlzitButton.setOnAction(ActionEvent_event -> {
                 int cena = 50;
                 int volneProdlouzeni = CurrentUserSession.getCurrentUser().getPocetVolnychProdlouzeni();
 
                 if (volneProdlouzeni > 0) {
-                    // MÁ NÁROK NA BEZPLATNÉ
+
                     DatabaseManager.predlzTermin(uloha.getId(), dalsiTermin(uloha.getDeadline()));
 
-                    // Snížíme počet volných prodloužení o 1 (v DB i v aktuální Session)
+
                     DatabaseManager.snizPocetVolnychProdlouzeni(CurrentUserSession.getCurrentUser().getId());
                     CurrentUserSession.getCurrentUser().setPocetVolnychProdlouzeni(volneProdlouzeni - 1);
 
                     obnovZoznamUloh();
+                    aktualizujStatistiky();
 
                 } else {
-                    // MUSÍ PLATIT (Už nemá žádné volné prodloužení)
                     int aktualniMena = CurrentUserSession.getCurrentUser().getHerniMena();
 
                     if (aktualniMena >= cena) {
                         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                        alert.setTitle("Placene predlzenie");
-                        alert.setHeaderText("Vycerpali ste vsetky bezplatne predlzenia.");
-                        alert.setContentText("Predlzenie o 1 den vas bude stat " + cena + " minci. Chcete pokracovat?");
+                        alert.setTitle("Platené predĺženie");
+                        alert.setHeaderText("Vyčerpali ste všetky bezplatné predĺženia.");
+                        alert.setContentText("Predĺženie o 1 deň vás bude stáť " + cena + " mincí. Chcete pokračovať?");
 
                         Optional<ButtonType> result = alert.showAndWait();
                         if (result.isPresent() && result.get() == ButtonType.OK) {
-                            DatabaseManager.odectiMenu(CurrentUserSession.getCurrentUser().getId(), cena);
-                            CurrentUserSession.getCurrentUser().setHerniMena(aktualniMena - cena);
-
-                            DatabaseManager.predlzTermin(uloha.getId(), dalsiTermin(uloha.getDeadline()));
-                            obnovZoznamUloh();
+                            AkciaVysledok vysledok = DatabaseManager.plateneVykonajPredlzenie(
+                                    CurrentUserSession.getCurrentUser().getId(),
+                                    uloha.getId(),
+                                    dalsiTermin(uloha.getDeadline()),
+                                    cena
+                            );
+                            if (vysledok.uspesne()) {
+                                obnovZoznamUloh();
+                                aktualizujStatistiky();
+                            } else {
+                                zobrazVarovanie(vysledok.sprava());
+                            }
                         }
                     } else {
-                        zobrazVarovanie("Nemate dostatok hernej meny na predlzenie!");
+                        zobrazVarovanie("Nemáte dostatok hernej meny na predĺženie!");
                     }
                 }
             });
             predlzitButton.setDisable(uloha.jeDokoncena());
-            predlzitButton.setStyle("-fx-background-color: white; -fx-text-fill: #6A040F; -fx-font-weight: bold; -fx-border-color: #6A040F; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 14 8 14;");
+            predlzitButton.setStyle("-fx-background-color: transparent; -fx-text-fill: -fx-primary; -fx-font-weight: bold; -fx-border-color: -fx-primary; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 14 8 14;");
 
-            Button vlastnePredlzenieButton = new Button("Vlastny termin");
+            Button vlastnePredlzenieButton = new Button("Vlastný termín");
             vlastnePredlzenieButton.setDisable(uloha.jeDokoncena());
-            vlastnePredlzenieButton.setStyle("-fx-background-color: white; -fx-text-fill: #6A040F; -fx-font-weight: bold; -fx-border-color: #d8a2ab; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 14 8 14;");
+            vlastnePredlzenieButton.setStyle("-fx-background-color: white; -fx-text-fill: #6A040F; -fx-font-weight: bold; -fx-border-color: -fx-primary; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 8 14 8 14;");
             vlastnePredlzenieButton.setOnAction(event -> otvorDialogPredlzenia(uloha));
 
             VBox actionsBox = new VBox(8, dokoncitButton, predlzitButton, vlastnePredlzenieButton);
@@ -306,15 +347,8 @@ public class UlohyController {
             HBox wrapper = new HBox(16, infoBox, spacer, actionsBox);
             wrapper.setAlignment(Pos.CENTER_LEFT);
             wrapper.setPadding(new Insets(14));
-            wrapper.setStyle(
-                    "-fx-background-color: " + (oznacenaUloha
-                            ? "linear-gradient(from 0% 0% to 100% 100%, #ffe4e8, #ffd7de)"
-                            : "linear-gradient(from 0% 0% to 100% 100%, #fff8f8, #fff0f2)") + ";" +
-                            "-fx-background-radius: 16;" +
-                            "-fx-border-color: " + (oznacenaUloha ? "#C1121F" : "#f0c9d0") + ";" +
-                            "-fx-border-radius: 16;" +
-                            "-fx-border-width: " + (oznacenaUloha ? "2" : "1") + ";"
-            );
+            wrapper.getStyleClass().add("karta-pozadie");
+            wrapper.setStyle("-fx-background-radius: 16; -fx-border-radius: 16; -fx-border-width: " + (oznacenaUloha ? "2" : "1") + ";");
             setText(null);
             setGraphic(wrapper);
             setStyle("-fx-background-color: transparent; -fx-padding: 6 0 6 0;");
@@ -341,9 +375,9 @@ public class UlohyController {
 
         private void otvorDialogPredlzenia(Uloha uloha) {
             TextInputDialog dialog = new TextInputDialog("3");
-            dialog.setTitle("Predlzenie terminu");
-            dialog.setHeaderText("O kolko dni chces predlzit termin?");
-            dialog.setContentText("Pocet dni:");
+            dialog.setTitle("Predĺženie termínu");
+            dialog.setHeaderText("O koľko dní chceš predĺžiť termín?");
+            dialog.setContentText("Počet dní:");
 
             Optional<String> result = dialog.showAndWait();
             if (result.isEmpty()) {
@@ -353,58 +387,81 @@ public class UlohyController {
             try {
                 int pocetDni = Integer.parseInt(result.get().trim());
                 if (pocetDni <= 0) {
-                    zobrazVarovanie("Zadaj kladne cele cislo vacsie ako 0.");
+                    zobrazVarovanie("Zadaj kladné celé číslo väčšie ako 0.");
                     return;
                 }
 
                 int cenaZaDen = 50;
-                int celkovaCena = cenaZaDen; // Nebo cenaZaDen * pocetDni
+                int celkovaCena = cenaZaDen;
                 int volneProdlouzeni = CurrentUserSession.getCurrentUser().getPocetVolnychProdlouzeni();
 
                 LocalDate zaklad = dalsiTermin(uloha.getDeadline()).minusDays(1);
                 LocalDate novyTermin = zaklad.plusDays(pocetDni);
 
                 if (volneProdlouzeni > 0) {
-                    // BEZPLATNÉ
+
                     DatabaseManager.predlzTermin(uloha.getId(), novyTermin);
 
                     DatabaseManager.snizPocetVolnychProdlouzeni(CurrentUserSession.getCurrentUser().getId());
                     CurrentUserSession.getCurrentUser().setPocetVolnychProdlouzeni(volneProdlouzeni - 1);
 
                     obnovZoznamUloh();
+                    aktualizujStatistiky();
+
                 } else {
-                    // PLACENÉ
+
                     int aktualniMena = CurrentUserSession.getCurrentUser().getHerniMena();
 
                     if (aktualniMena >= celkovaCena) {
                         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                        alert.setTitle("Placene predlzenie");
-                        alert.setHeaderText("Vycerpali ste vsetky bezplatne predlzenia.");
-                        alert.setContentText("Predlzenie o " + pocetDni + " dni vas bude stat " + celkovaCena + " minci. Chcete pokracovat?");
+                        alert.setTitle("Platené predĺženie");
+                        alert.setHeaderText("Vyčerpali ste všetky bezplatné predĺženia.");
+                        alert.setContentText("Predĺženie o " + pocetDni + " dní vás bude stáť " + celkovaCena + " mincí. Chcete pokracovat?");
 
                         Optional<ButtonType> potvrdenie = alert.showAndWait();
                         if (potvrdenie.isPresent() && potvrdenie.get() == ButtonType.OK) {
-                            DatabaseManager.odectiMenu(CurrentUserSession.getCurrentUser().getId(), celkovaCena);
-                            CurrentUserSession.getCurrentUser().setHerniMena(aktualniMena - celkovaCena);
-
-                            DatabaseManager.predlzTermin(uloha.getId(), novyTermin);
-                            obnovZoznamUloh();
+                            AkciaVysledok vysledok = DatabaseManager.plateneVykonajPredlzenie(
+                                    CurrentUserSession.getCurrentUser().getId(),
+                                    uloha.getId(),
+                                    novyTermin,
+                                    celkovaCena
+                            );
+                            if (vysledok.uspesne()) {
+                                obnovZoznamUloh();
+                                aktualizujStatistiky();
+                            } else {
+                                zobrazVarovanie(vysledok.sprava());
+                            }
                         }
                     } else {
-                        zobrazVarovanie("Nemate dostatok hernej meny na predlzenie!");
+                        zobrazVarovanie("Nemáte dostatok hernej meny na predĺženie!");
                     }
                 }
             } catch (NumberFormatException e) {
-                zobrazVarovanie("Pocet dni musi byt cele cislo.");
+                zobrazVarovanie("Počet dní musí byť celé číslo.");
             }
         }
 
         private void zobrazVarovanie(String sprava) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Neplatna hodnota");
-            alert.setHeaderText("Termin sa nepodarilo predlzit");
+            alert.setTitle("Neplatná hodnota");
+            alert.setHeaderText("Termín sa nepodarilo predĺžiť");
             alert.setContentText(sprava);
             alert.showAndWait();
         }
+    }
+
+    @FXML
+    private void otvorUlohy(ActionEvent event) {
+        obnovZoznamUloh();
+    }
+    @FXML
+    private void otvorStatistiky(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML_files/stats.fxml"));
+        Parent root = loader.load();
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setTitle("Avatask - Štatistiky");
+        stage.getScene().setRoot(root);
+        obnovZoznamUloh();
     }
 }

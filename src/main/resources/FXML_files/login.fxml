@@ -20,8 +20,8 @@
             </ImageView>
             <TextField fx:id="usernameField" promptText="Prihlasovacie meno" />
             <PasswordField fx:id="passwordField" promptText="Heslo" />
-            <Button defaultButton="true" mnemonicParsing="false" onAction="#prihlasSa" text="Prihlasit sa" textFill="#6a040f" />
-            <Hyperlink mnemonicParsing="false" onAction="#otvorRegistraciu" text="Nemas ucet? Zaregistruj sa!" textFill="WHITE" />
+            <Button defaultButton="true" mnemonicParsing="false" onAction="#prihlasSa" text="Prihlásiť sa" textFill="#6a040f" />
+            <Hyperlink mnemonicParsing="false" onAction="#otvorRegistraciu" text="Nemáš účet? Zaregistruj sa!" textFill="WHITE" />
          </children>
       </VBox>
    </children>

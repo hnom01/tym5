@@ -9,14 +9,19 @@ public class Uloha {
     private final String stav;
     private final String popis;
     private final int xpOdmena;
+    private LocalDate datumDokonceni;
+    private final String obtiaznost;
 
-    public Uloha(int id, String nazov, LocalDate deadline, String stav, String popis, int xpOdmena) {
+
+    public Uloha(int id, String nazov, LocalDate deadline, String stav, String popis, int xpOdmena, LocalDate datumDokonceni, String obtiaznost) {
         this.id = id;
         this.nazov = nazov;
         this.deadline = deadline;
         this.stav = stav;
         this.popis = popis;
         this.xpOdmena = xpOdmena;
+        this.datumDokonceni = datumDokonceni;
+        this.obtiaznost = obtiaznost;
     }
 
     public int getId() {
@@ -41,6 +46,8 @@ public class Uloha {
 
     public int getXpOdmena() { return xpOdmena;}
 
+    public String getObtiaznost() { return obtiaznost; }
+
     public boolean jeDokoncena() {
         return "Dokoncena".equalsIgnoreCase(stav);
     }
@@ -53,4 +60,11 @@ public class Uloha {
     public void setPocetProdlouzeni(int pocetProdlouzeni) {
         this.pocetProdlouzeni = pocetProdlouzeni;
     }
+
+
+
+    public LocalDate getDatumDokonceni() {
+        return datumDokonceni;
+    }
+
 }

@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.control.ComboBox?>
 
 
 <AnchorPane fx:controller="cz.vse.avatask.NovaUlohaController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="300.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
@@ -35,6 +36,7 @@
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -66,9 +68,19 @@
                      </GridPane.margin>
                   </TextField>
                   <DatePicker fx:id="deadlineUlohy" promptText="deadline" style="-fx-focus-color: #6A040F; -fx-accent: #6A040F;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Label style="-fx-font-weight: bold;" text="Obtiažnosť:" textFill="#6a040f" GridPane.rowIndex="3">
+                     <GridPane.margin>
+                        <Insets left="10.0" />
+                     </GridPane.margin>
+                  </Label>
+                  <ComboBox fx:id="obtiaznostCombo" maxWidth="1.7976931348623157E308" promptText="vyber obtiažnosť" style="-fx-focus-color: #6A040F; -fx-accent: #6A040F;" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                     <GridPane.margin>
+                        <Insets right="10.0" />
+                     </GridPane.margin>
+                  </ComboBox>
                </children>
             </GridPane>
-            <Label text="Poznámka: Deadline je možné predĺžiť 3x mesačne zdarma. Po vyčerpaní limitu stojí predĺženie 15XP. Zostatok predĺžení: 3" textAlignment="CENTER" textFill="#6e6e6e" wrapText="true">
+            <Label text="Poznámka: Deadline je možné predĺžiť 3x mesačne zdarma. Po vyčerpaní limitu stojí predĺženie 50XP." textAlignment="CENTER" textFill="#6e6e6e" wrapText="true">
                <font>
                   <Font name="System Italic" size="10.0" />
                </font>

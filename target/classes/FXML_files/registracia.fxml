@@ -12,11 +12,11 @@
       <Insets bottom="20.0" left="24.0" right="24.0" top="20.0" />
    </padding>
    <children>
-      <Label text="Registracia" textFill="WHITE" />
+      <Label text="Registrácia" textFill="WHITE" />
       <TextField fx:id="usernameField" promptText="Prihlasovacie meno" />
       <TextField fx:id="emailField" promptText="Email" />
       <PasswordField fx:id="passwordField" promptText="Heslo" />
-      <PasswordField fx:id="confirmPasswordField" promptText="Potvrdit heslo" />
-      <Button mnemonicParsing="false" onAction="#registrujSa" text="Vytvorit ucet" />
+      <PasswordField fx:id="confirmPasswordField" promptText="Potvrdiť heslo" />
+      <Button mnemonicParsing="false" onAction="#registrujSa" text="Vytvoriť účet" />
    </children>
 </VBox>

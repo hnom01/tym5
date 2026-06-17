@@ -26,7 +26,7 @@
                 <StackPane fx:id="avatarStackPane" prefHeight="281.0" prefWidth="188.0">
                     <children>
                         <ImageView fx:id="avatarBaseImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
-                        <ImageView fx:id="avatarKabatImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="avatarNahrdelnikImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
                         <ImageView fx:id="avatarSiltovkaImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
                         <ImageView fx:id="avatarKlobukImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />
                         <ImageView fx:id="avatarOkuliareImageView" fitHeight="281.0" fitWidth="188.0" pickOnBounds="true" preserveRatio="true" />

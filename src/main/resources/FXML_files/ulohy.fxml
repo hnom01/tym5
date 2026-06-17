@@ -6,132 +6,143 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.layout.StackPane?>
 
-<BorderPane fx:controller="cz.vse.avatask.UlohyController" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="430.0" prefWidth="720.0" style="-fx-background-color: #fff7f8;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
-   <center>
-      <SplitPane dividerPositions="0.52" style="-fx-box-border: transparent;" BorderPane.alignment="CENTER">
-         <items>
-            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="360.0">
-               <children>
-                  <VBox spacing="10.0" style="-fx-background-color: transparent;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                     <padding>
-                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-                     </padding>
-                     <children>
-                        <Label maxWidth="1.7976931348623157E308" style="-fx-background-color: white; -fx-border-color: #6A040F; -fx-border-width: 2; -fx-border-radius: 14; -fx-background-radius: 14; -fx-font-weight: bold; -fx-text-fill: #6A040F;" text="Moje ulohy">
-                           <font>
-                              <Font size="16.0" />
-                           </font>
-                           <padding>
-                              <Insets bottom="12.0" left="14.0" right="14.0" top="12.0" />
-                           </padding>
-                        </Label>
-                        <ListView fx:id="ulohyList" style="-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0; -fx-padding: 0;" VBox.vgrow="ALWAYS" />
-                        <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#otvorNovuUlohu" style="-fx-background-color: #6A040F; -fx-font-weight: bold; -fx-background-radius: 14; -fx-padding: 12 18 12 18;" text="+ pridat novu ulohu" textFill="WHITE" />
-                     </children>
-                  </VBox>
-               </children>
-            </AnchorPane>
-            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="320.0" style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #fff1f3, #ffffff);">
-               <children>
-                  <VBox alignment="CENTER" spacing="8.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                     <padding>
-                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-                     </padding>
-                     <children>
-                        <Label fx:id="menoPouzivatelaLabel" maxWidth="1.7976931348623157E308" style="-fx-background-color: #6A040F; -fx-border-width: 3; -fx-border-color: #6A040F; -fx-background-radius: 14; -fx-border-radius: 14;" text="Pouzivatel" textFill="WHITE">
-                           <padding>
-                              <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
-                           </padding>
-                           <font>
-                              <Font name="System Bold" size="15.0" />
-                           </font>
-                        </Label>
-                        <StackPane fx:id="avatarStackPane" prefHeight="320.0" prefWidth="220.0" VBox.vgrow="ALWAYS">
-                           <children>
-                              <ImageView fx:id="avatarBaseImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@muz_basic.png" />
-                                 </image>
-                              </ImageView>
-                              <ImageView fx:id="avatarKabatImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true" />
-                              <ImageView fx:id="avatarSiltovkaImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true" />
-                              <ImageView fx:id="avatarKlobukImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true" />
-                              <ImageView fx:id="avatarOkuliareImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true" />
-                           </children>
-                        </StackPane>
-                        <ProgressBar maxWidth="1.7976931348623157E308" progress="0.0" style="-fx-accent: #6A040F;" />
-                        <ImageView fitHeight="225.0" fitWidth="350.0" pickOnBounds="true" preserveRatio="true" VBox.vgrow="ALWAYS">
-                           <image>
-                              <Image url="@avatar.png" />
-                           </image>
-                        </ImageView>
-                        <StackPane maxWidth="1.7976931348623157E308">
-                           <children>
-                              <ProgressBar fx:id="xpProgressBar" maxWidth="1.7976931348623157E308" minHeight="20.0" progress="0.0" style="-fx-accent: #6A040F;" />
-                              <Label fx:id="xpZostatokLabel" text="Do ďalšieho levelu chýba: 0 XP" textFill="BLACK">
-                                 <font>
-                                    <Font name="System Bold" size="12.0" />
-                                 </font>
-                              </Label>
-                           </children>
-                        </StackPane>
-                        <HBox spacing="8.0" VBox.vgrow="ALWAYS">
-                           <children>
-                              <Label fx:id="kartaXpLabel" maxWidth="1.7976931348623157E308" style="-fx-background-color: white; -fx-border-color: #6A040F; -fx-border-width: 2; -fx-background-radius: 12; -fx-border-radius: 12;" text="XP:" textFill="#6a040f" HBox.hgrow="ALWAYS">
-                                 <padding>
-                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                                 </padding>
-                              </Label>
-                              <Label fx:id="kartaLevelLabel" maxWidth="1.7976931348623157E308" style="-fx-background-color: white; -fx-border-color: #6A040F; -fx-border-width: 2; -fx-background-radius: 12; -fx-border-radius: 12;" text="Level:" textFill="#6a040f" HBox.hgrow="ALWAYS">
-                                 <padding>
-                                    <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-                                 </padding>
-                              </Label>
-                           </children>
-                        </HBox>
-                     </children>
-                  </VBox>
-               </children>
-            </AnchorPane>
-         </items>
-      </SplitPane>
-   </center>
-   <top>
-      <HBox alignment="CENTER_RIGHT" spacing="20.0" style="-fx-background-color: #6A040F;" BorderPane.alignment="CENTER">
-         <padding>
-            <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
-         </padding>
-         <children>
-            <Label fx:id="hornyLevelLabel" style="-fx-font-weight: bold; -fx-font-style: italic;" text="Level X" textFill="WHITE" />
-            <Label fx:id="hornyXpLabel" text="XP: xxx" textFill="WHITE">
-               <font>
-                  <Font name="System Bold Italic" size="12.0" />
-               </font>
-            </Label>
-            <Label fx:id="hornaMenaLabel" text="Mince: 0" textFill="#ffcc00">
-               <font>
-                  <Font name="System Bold" size="12.0" />
-               </font>
-            </Label>
-            <Button mnemonicParsing="false" onAction="#otvorSatnik" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Obchod a satnik" textFill="WHITE" />
-            <Button mnemonicParsing="false" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Statistiky" textFill="WHITE" />
-            <Button mnemonicParsing="false" onAction="#otvorProfil" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Moj profil" textFill="WHITE" />
-            <ImageView fitHeight="38.0" fitWidth="102.0" pickOnBounds="true" preserveRatio="true" HBox.hgrow="ALWAYS">
-               <image>
-                  <Image url="@avatask.png" />
-               </image>
-            </ImageView>
-         </children>
-      </HBox>
-   </top>
+<BorderPane fx:controller="cz.vse.avatask.UlohyController" styleClass="hlavne-pozadie" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="430.0" prefWidth="720.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="horna-lista" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+            </padding>
+            <children>
+                <Label fx:id="hornyLevelLabel" style="-fx-font-weight: bold; -fx-font-style: italic;" text="Level X" textFill="WHITE" />
+                <Label fx:id="hornyXpLabel" text="XP: xxx" textFill="WHITE">
+                    <font>
+                        <Font name="System Bold Italic" size="12.0" />
+                    </font>
+                </Label>
+                <Label fx:id="hornaMenaLabel" text="Mena: 0" textFill="#ffcc00">
+                    <font>
+                        <Font name="System Bold" size="12.0" />
+                    </font>
+                </Label>
+                <Region prefWidth="1.0" minHeight="22.0" style="-fx-background-color: rgba(255,255,255,0.35);">
+                    <HBox.margin><Insets left="8.0" right="8.0" /></HBox.margin>
+                </Region>
+                <Region HBox.hgrow="ALWAYS" />
+                <Button mnemonicParsing="false" onAction="#otvorSatnik" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Obchod a šatník" textFill="WHITE" />
+                <Button mnemonicParsing="false" onAction="#otvorStatistiky" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Štatistiky" textFill="WHITE" />
+                <Button mnemonicParsing="false" onAction="#otvorProfil" style="-fx-background-color: transparent; -fx-font-weight: bold; -fx-cursor: hand;" text="Môj profil" textFill="WHITE" />
+                <ImageView fitHeight="38.0" fitWidth="102.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@avatask.png" />
+                    </image>
+                </ImageView>
+            </children>
+        </HBox>
+    </top>
+    <center>
+        <SplitPane dividerPositions="0.52" style="-fx-box-border: transparent; -fx-background-color: transparent;" BorderPane.alignment="CENTER">
+            <items>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="360.0">
+                    <children>
+                        <VBox spacing="10.0" style="-fx-background-color: transparent;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                    <children>
+                                        <Label maxWidth="1.7976931348623157E308" style="-fx-background-color: -fx-surface-bg; -fx-border-color: -fx-primary; -fx-border-width: 2; -fx-border-radius: 14; -fx-background-radius: 14; -fx-font-weight: bold; -fx-text-fill: -fx-primary;" text="Moje ulohy" HBox.hgrow="ALWAYS">
+                                            <font>
+                                                <Font size="16.0" />
+                                            </font>
+                                            <padding>
+                                                <Insets bottom="12.0" left="14.0" right="14.0" top="12.0" />
+                                            </padding>
+                                        </Label>
+                                        <Label fx:id="volnePredlzeniaLabel" style="-fx-background-color: #ffcc00; -fx-border-radius: 14; -fx-background-radius: 14; -fx-font-weight: bold; -fx-text-fill: black;" text="Voľné predĺženia: 0">
+                                            <font>
+                                                <Font size="14.0" />
+                                            </font>
+                                            <padding>
+                                                <Insets bottom="12.0" left="14.0" right="14.0" top="12.0" />
+                                            </padding>
+                                        </Label>
+                                    </children>
+                                </HBox>
+                                <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                                    <tabs>
+                                        <Tab text="Aktívne úlohy">
+                                            <content>
+                                                <ListView fx:id="aktivneUlohyList" style="-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0; -fx-padding: 0;" />
+                                            </content>
+                                        </Tab>
+                                        <Tab text="Dokončené úlohy">
+                                            <content>
+                                                <ListView fx:id="dokonceneUlohyList" style="-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0; -fx-padding: 0;" />
+                                            </content>
+                                        </Tab>
+                                    </tabs>
+                                </TabPane>
+                                <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#otvorNovuUlohu" styleClass="primary-button" style="-fx-background-radius: 14; -fx-padding: 12 18 12 18;" text="+ pridať novú úlohu" />
+                            </children>
+                        </VBox>
+                    </children>
+                </AnchorPane>
+                <AnchorPane styleClass="karta-pozadie" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="320.0">
+                    <children>
+                        <VBox alignment="CENTER" spacing="8.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                            </padding>
+                            <children>
+                                <Label fx:id="menoPouzivatelaLabel" maxWidth="1.7976931348623157E308" style="-fx-background-color: -fx-primary; -fx-border-width: 3; -fx-border-color: -fx-primary; -fx-background-radius: 14; -fx-border-radius: 14;" text="Užívateľ" textFill="WHITE">
+                                    <padding>
+                                        <Insets bottom="12.0" left="12.0" right="12.0" top="12.0" />
+                                    </padding>
+                                    <font>
+                                        <Font name="System Bold" size="15.0" />
+                                    </font>
+                                </Label>
+                                <StackPane fx:id="avatarStackPane" prefHeight="320.0" prefWidth="220.0" VBox.vgrow="ALWAYS">
+                                    <children>
+                                        <ImageView fx:id="avatarBaseImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true">
+                                            <image>
+                                                <Image url="@muz_basic.png" />
+                                            </image>
+                                        </ImageView>
+                                        <ImageView fx:id="avatarNahrdelnikImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true" />
+                                        <ImageView fx:id="avatarSiltovkaImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true" />
+                                        <ImageView fx:id="avatarKlobukImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true" />
+                                        <ImageView fx:id="avatarOkuliareImageView" fitHeight="310.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true" />
+                                    </children>
+                                </StackPane>
+                                <StackPane maxWidth="1.7976931348623157E308">
+                                    <children>
+                                        <ProgressBar fx:id="xpProgressBar" maxWidth="1.7976931348623157E308" minHeight="20.0" progress="0.0" style="-fx-accent: -fx-primary;" />
+                                        <Label fx:id="xpZostatokLabel" styleClass="hlavny-text" text="Do ďalšieho levelu chýba: 0 XP">
+                                            <font>
+                                                <Font name="System Bold" size="12.0" />
+                                            </font>
+                                        </Label>
+                                    </children>
+                                </StackPane>
+                            </children>
+                        </VBox>
+                    </children>
+                </AnchorPane>
+            </items>
+        </SplitPane>
+    </center>
 </BorderPane>

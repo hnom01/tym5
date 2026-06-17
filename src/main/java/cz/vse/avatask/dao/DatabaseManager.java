@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.time.temporal.ChronoUnit;
 import java.time.YearMonth;
@@ -58,7 +59,7 @@ public class DatabaseManager {
                     ");";
             stmt.execute(sqlNastaveni);
 
-            // OPRAVA: Pridaný stĺpec pocet_prodlouzeni priamo do definície tabuľky
+
             String sqlUkol = "CREATE TABLE IF NOT EXISTS UKOL (" +
                     "id_ukol INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "id_zakaznik INTEGER," +
@@ -112,9 +113,12 @@ public class DatabaseManager {
             stmt.execute(sqlSystemConfig);
 
             pridajStlpecAkChyba(conn, "ZAKAZNIK", "pohlavie", "TEXT DEFAULT 'MUZ'");
+            pridajStlpecAkChyba(conn, "UKOL", "datumDokonceni", "DATE");
 
-            // OPRAVA: Poistka pre existujúce databázy
+
             pridajStlpecAkChyba(conn, "UKOL", "pocet_prodlouzeni", "INTEGER DEFAULT 0");
+
+            pridajStlpecAkChyba(conn, "UKOL", "obtiaznost", "TEXT DEFAULT 'Ľahká'");
 
             zaktivujZakladnyShop(conn);
             stmt.executeUpdate("UPDATE UKOL SET deadline = NULL WHERE deadline = '' OR TRIM(deadline) = ''");
@@ -325,8 +329,8 @@ public class DatabaseManager {
         }
     }
 
-    public static void pridejUkol(String nazev, String deadline, String popis, int xpOdmena) {
-        String sql = "INSERT INTO UKOL(nazev, deadline, datumVytvoreni, popis, id_zakaznik, xp_odmena) VALUES(?,?,date('now'),?,?,?)";
+    public static void pridejUkol(String nazev, String deadline, String popis, int xpOdmena, String obtiaznost) {
+        String sql = "INSERT INTO UKOL(nazev, deadline, datumVytvoreni, popis, id_zakaznik, xp_odmena, obtiaznost) VALUES(?,?,date('now'),?,?,?,?)";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -339,6 +343,7 @@ public class DatabaseManager {
             pstmt.setString(3, popis);
             pstmt.setInt(4, aktualneIdZakaznika());
             pstmt.setInt(5, xpOdmena);
+            pstmt.setString(6, obtiaznost);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Chyba pri ukladani: " + e.getMessage());
@@ -347,8 +352,8 @@ public class DatabaseManager {
 
     public static List<Uloha> nacitajUlohy() {
         List<Uloha> ulohy = new ArrayList<>();
-        // Spojený SQL dopyt: Načítava aj Katkinu 'xp_odmena', aj kolegov 'pocet_prodlouzeni'
-        String sql = "SELECT id_ukol, nazev, deadline, stav, popis, xp_odmena, pocet_prodlouzeni FROM UKOL WHERE id_zakaznik = ? ORDER BY " +
+
+        String sql = "SELECT id_ukol, nazev, deadline, stav, popis, xp_odmena, pocet_prodlouzeni, datumDokonceni, obtiaznost FROM UKOL WHERE id_zakaznik = ? ORDER BY " +
                 "CASE WHEN stav = 'Dokoncena' THEN 1 ELSE 0 END, " +
                 "CASE WHEN deadline IS NULL THEN 1 ELSE 0 END, deadline, id_ukol DESC";
 
@@ -359,18 +364,17 @@ public class DatabaseManager {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     LocalDate deadline = parseDeadline(rs.getString("deadline"));
-
-                    // Správne vygenerovaný objekt Uloha (zátvorky sú opravené)
+                    LocalDate datumDokonceni = parseDeadline(rs.getString("datumDokonceni"));
                     Uloha nactenaUloha = new Uloha(
                             rs.getInt("id_ukol"),
                             rs.getString("nazev"),
                             deadline,
                             rs.getString("stav"),
                             rs.getString("popis"),
-                            rs.getInt("xp_odmena")
+                            rs.getInt("xp_odmena"),
+                            datumDokonceni,
+                            rs.getString("obtiaznost") != null ? rs.getString("obtiaznost") : "Ľahká"
                     );
-
-                    // Ponechaná logika pre počet predĺžení od kolegu
                     nactenaUloha.setPocetProdlouzeni(rs.getInt("pocet_prodlouzeni"));
                     ulohy.add(nactenaUloha);
                 }
@@ -383,7 +387,8 @@ public class DatabaseManager {
     }
 
     public static boolean oznacAkoDokoncenu(int idUlohy) {
-        String selectSql = "SELECT xp_odmena, id_zakaznik, deadline FROM UKOL WHERE id_ukol = ? AND stav != 'Dokoncena'";
+        // 1. Získání údajů (tento blok máš správně)
+        String selectSql = "SELECT xp_odmena, id_zakaznik, deadline FROM UKOL WHERE id_ukol = ?";
         int xpNaPripisanie = 0;
         int idZakaznika = -1;
         LocalDate deadline = null;
@@ -395,24 +400,26 @@ public class DatabaseManager {
                 if (rs.next()) {
                     xpNaPripisanie = rs.getInt("xp_odmena");
                     idZakaznika = rs.getInt("id_zakaznik");
-                    deadline = parseDeadline(rs.getString("deadline")); // Načtení uloženého deadlinu
+                    deadline = parseDeadline(rs.getString("deadline"));
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Chyba pri zistovani XP: " + e.getMessage());
+            System.out.println("Chyba pri zistovani dat: " + e.getMessage());
             return false;
         }
 
         if (idZakaznika == -1) return false;
 
-        String sql = "UPDATE UKOL SET stav = 'Dokoncena' WHERE id_ukol = ?";
+        // 2. OPRAVA ZDE: Správná SQL syntaxe s WHERE
+        String sql = "UPDATE UKOL SET stav = 'Dokoncena', datumDokonceni = date('now') WHERE id_ukol = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, idUlohy);
+            pstmt.setInt(1, idUlohy); // Nastavíme ID do otazníku
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Chyba pri dokonceni ulohy: " + e.getMessage());
+            return false; // Přidáno pro lepší bezpečnost
         }
 
         return pripisXpPouzivatelovi(idZakaznika, xpNaPripisanie, deadline);
@@ -428,6 +435,39 @@ public class DatabaseManager {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Chyba pri predlzeni terminu: " + e.getMessage());
+        }
+    }
+
+
+    public static AkciaVysledok plateneVykonajPredlzenie(int idZakaznika, int idUlohy, LocalDate novyTermin, int cena) {
+        String sqlOdcitaj = "UPDATE ZAKAZNIK SET herniMena = herniMena - ? WHERE id_zakaznik = ? AND herniMena >= ?";
+        String sqlPredlz  = "UPDATE UKOL SET deadline = ?, stav = CASE WHEN stav = 'Dokoncena' THEN stav ELSE 'Aktivna' END, xp_odmena = MAX(0, xp_odmena - 5) WHERE id_ukol = ?";
+
+        try (Connection conn = getConnection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement ps1 = conn.prepareStatement(sqlOdcitaj)) {
+                ps1.setInt(1, cena);
+                ps1.setInt(2, idZakaznika);
+                ps1.setInt(3, cena);
+                if (ps1.executeUpdate() == 0) {
+                    conn.rollback();
+                    return new AkciaVysledok(false, "Nemas dost hernej meny.");
+                }
+            }
+
+            try (PreparedStatement ps2 = conn.prepareStatement(sqlPredlz)) {
+                ps2.setString(1, novyTermin.toString());
+                ps2.setInt(2, idUlohy);
+                ps2.executeUpdate();
+            }
+
+            conn.commit();
+            prihlasAktualnehoPouzivatela(idZakaznika);
+            return new AkciaVysledok(true, "Termin predlzeny.");
+
+        } catch (SQLException e) {
+            return new AkciaVysledok(false, "Chyba: " + e.getMessage());
         }
     }
 
@@ -630,6 +670,8 @@ public class DatabaseManager {
             return new AkciaVysledok(false, "Predmet sa neda obliect.");
         }
 
+        String konfliktnýStlpec = mapujKonfliktnýSlot(predmet.castTela());
+
         String sqlEnsureAvatar = "INSERT OR IGNORE INTO AVATAR(id_zakaznik) VALUES(?)";
         String sqlUpdate = "UPDATE AVATAR SET " + stlpec + " = ? WHERE id_zakaznik = ?";
 
@@ -638,6 +680,14 @@ public class DatabaseManager {
             try (PreparedStatement pstmt = conn.prepareStatement(sqlEnsureAvatar)) {
                 pstmt.setInt(1, idZakaznika);
                 pstmt.executeUpdate();
+            }
+
+            if (konfliktnýStlpec != null) {
+                try (PreparedStatement pstmt = conn.prepareStatement(
+                        "UPDATE AVATAR SET " + konfliktnýStlpec + " = NULL WHERE id_zakaznik = ?")) {
+                    pstmt.setInt(1, idZakaznika);
+                    pstmt.executeUpdate();
+                }
             }
 
             try (PreparedStatement pstmt = conn.prepareStatement(sqlUpdate)) {
@@ -652,6 +702,31 @@ public class DatabaseManager {
         } catch (SQLException e) {
             System.out.println("Chyba pri obliekani predmetu: " + e.getMessage());
             return new AkciaVysledok(false, "Predmet sa nepodarilo obliect.");
+        }
+    }
+
+    public static AkciaVysledok vyzlecPredmet(int idZakaznika, int idPredmetu) {
+        Optional<SatnikItem> predmetOpt = nacitajPredmetPodlaId(idPredmetu);
+        if (predmetOpt.isEmpty()) {
+            return new AkciaVysledok(false, "Predmet sa nenasiel.");
+        }
+
+        SatnikItem predmet = predmetOpt.get();
+        String stlpec = mapujSlot(predmet.castTela());
+        if (stlpec == null) {
+            return new AkciaVysledok(false, "Predmet sa neda vyzliect.");
+        }
+
+        String sql = "UPDATE AVATAR SET " + stlpec + " = NULL WHERE id_zakaznik = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idZakaznika);
+            pstmt.executeUpdate();
+            prihlasAktualnehoPouzivatela(idZakaznika);
+            return new AkciaVysledok(true, "Predmet '" + predmet.nazov() + "' bol vyzleceny.");
+        } catch (SQLException e) {
+            System.out.println("Chyba pri vyzliecani predmetu: " + e.getMessage());
+            return new AkciaVysledok(false, "Predmet sa nepodarilo vyzliect.");
         }
     }
 
@@ -774,7 +849,7 @@ public class DatabaseManager {
                 {"Klobúk", "Klasicky elegantny klobuk.", "120", "HLAVA_KLOBUK"},
                 {"Okuliare", "Stylove okuliare do kazdej situacie.", "90", "TVAR_OKULIARE"},
                 {"Šiltovka", "Cervena siltovka pre sportovy look.", "110", "HLAVA_SILTOVKA"},
-                {"Kabát", "Mestsky kabat na chladne dni.", "160", "TELO_KABAT"}
+                {"Náhrdelník", "Elegantny nahrdelnik, ktory doladi kazdy outfit.", "160", "KRK_NAHRDELNIK"}
         };
 
         for (String[] predmet : predmety) {
@@ -830,8 +905,8 @@ public class DatabaseManager {
         if (hladanyNazov.contains("siltovka")) {
             return "/FXML_files/siltovka_cervena.png";
         }
-        if (hladanyNazov.contains("kabat")) {
-            return "/FXML_files/kabat_hnedy.png";
+        if (hladanyNazov.contains("nahrdelnik")) {
+            return "/FXML_files/nahrdelnik.png";
         }
         return "/FXML_files/muz_basic.png";
     }
@@ -845,7 +920,16 @@ public class DatabaseManager {
             case "HLAVA_KLOBUK" -> "id_hlava";
             case "TVAR_OKULIARE" -> "id_telo";
             case "HLAVA_SILTOVKA" -> "id_nohy";
-            case "TELO_KABAT" -> "id_boty";
+            case "KRK_NAHRDELNIK" -> "id_boty";
+            default -> null;
+        };
+    }
+
+    private static String mapujKonfliktnýSlot(String castTela) {
+        if (castTela == null) return null;
+        return switch (castTela.trim().toUpperCase()) {
+            case "HLAVA_KLOBUK" -> "id_nohy";   // vyzlece siltovku
+            case "HLAVA_SILTOVKA" -> "id_hlava"; // vyzlece klobuk
             default -> null;
         };
     }
@@ -926,38 +1010,6 @@ public class DatabaseManager {
                 .replace('Ý', 'Y')
                 .replace('Ž', 'Z');
     }
-    public static void odectiMenu(int idZakaznika, int castka) {
-        // Upraveno přesně podle tvých názvů sloupců v tabulce ZAKAZNIK
-        String sql = "UPDATE ZAKAZNIK SET herniMena = herniMena - ? WHERE id_zakaznik = ?";
-
-        // Použití vaší metody getConnection() k získání připojení
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, castka);
-            pstmt.setInt(2, idZakaznika);
-            pstmt.executeUpdate();
-
-        } catch (SQLException e) {
-            System.out.println("Chyba při odečítání měny:");
-            e.printStackTrace();
-        }
-    }
-    public static void zapisPocetProdlouzeni(int idUlohy, int pocet) {
-        String sql = "UPDATE UKOL SET pocet_prodlouzeni = ? WHERE id_ukol = ?";
-
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, pocet);
-            pstmt.setInt(2, idUlohy);
-            pstmt.executeUpdate();
-
-        } catch (SQLException e) {
-            System.out.println("Chyba při zápisu počtu prodloužení:");
-            e.printStackTrace();
-        }
-    }
     public static void snizPocetVolnychProdlouzeni(int idZakaznika) {
         String sql = "UPDATE ZAKAZNIK SET pocetVolnychProdlouzeni = pocetVolnychProdlouzeni - 1 WHERE id_zakaznik = ?";
         try (Connection conn = getConnection();
@@ -970,19 +1022,7 @@ public class DatabaseManager {
             System.out.println("Chyba při snižování volných prodloužení: " + e.getMessage());
         }
     }
-    public static void dokonciUlohu(int idUkolu) {
-        String sql = "UPDATE UKOL SET stav = 'Dokoncena' WHERE id_ukol = ?";
 
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, idUkolu);
-            pstmt.executeUpdate();
-
-        } catch (SQLException e) {
-            System.out.println("Chyba při dokončování úkolu: " + e.getMessage());
-        }
-    }
 
     private static boolean pripisXpPouzivatelovi(int idZakaznika, int pridaneXp, LocalDate deadline) {
         long dnyZpozdeni = 0;
@@ -1020,7 +1060,7 @@ public class DatabaseManager {
         int noveXp = aktualneXp + finalniPridaneXp;
         boolean levelUp = false;
 
-        // 5. Výpočet level-upu (Přidání 50 herní měny za každý nový level)
+
         while (noveXp >= aktualnyLevel * 100) {
             aktualnyLevel++;
             aktualnaMena += aktualnyLevel * 50;
@@ -1045,4 +1085,114 @@ public class DatabaseManager {
         return levelUp;
     }
 
+    public static int[] ziskajStatistikyUspesnosti(int idZakaznika) {
+        String sql = "SELECT " +
+                "SUM(CASE WHEN stav = 'Dokoncena' AND datumDokonceni <= deadline THEN 1 ELSE 0 END) AS hotovo, " +
+                "SUM(CASE WHEN stav = 'Dokoncena' OR (deadline IS NOT NULL AND deadline < date('now')) THEN 1 ELSE 0 END) AS celkem " +
+                "FROM UKOL WHERE id_zakaznik = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idZakaznika);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return new int[]{rs.getInt("hotovo"), rs.getInt("celkem")};
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new int[]{0, 0};
+    }
+    public static List<Map<String, Object>> ziskajStatistikyProGraf(int idZakaznika) {
+        List<Map<String, Object>> data = new ArrayList<>();
+
+
+        String sql = "SELECT datumDokonceni, " +
+                "SUM(CASE WHEN datumDokonceni <= deadline THEN 1 ELSE 0 END) as vcas, " +
+                "SUM(CASE WHEN datumDokonceni > deadline THEN 1 ELSE 0 END) as pozde " +
+                "FROM UKOL " +
+                "WHERE id_zakaznik = ? AND stav = 'Dokoncena' " +
+                "AND datumDokonceni >= date('now', '-10 days') " +
+                "GROUP BY datumDokonceni " +
+                "ORDER BY datumDokonceni ASC LIMIT 10";
+
+        try (Connection conn = getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idZakaznika);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> entry = new java.util.HashMap<>();
+                entry.put("datum", rs.getString("datumDokonceni"));
+                entry.put("vcas", rs.getInt("vcas"));
+                entry.put("pozde", rs.getInt("pozde"));
+                data.add(entry);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return data;
+    }
+    public static List<Map<String, Object>> ziskajStatistikyPerTyzden(int idZakaznika) {
+        String sql = "SELECT * FROM (" +
+                "  SELECT strftime('%Y-W%W', datumDokonceni) AS tyzden," +
+                "    SUM(CASE WHEN datumDokonceni <= deadline THEN 1 ELSE 0 END) AS vcas," +
+                "    SUM(CASE WHEN datumDokonceni > deadline THEN 1 ELSE 0 END) AS pozde" +
+                "  FROM UKOL" +
+                "  WHERE id_zakaznik = ? AND stav = 'Dokoncena' AND datumDokonceni IS NOT NULL" +
+                "  GROUP BY tyzden ORDER BY tyzden DESC LIMIT 8" +
+                ") ORDER BY tyzden ASC";
+        List<Map<String, Object>> data = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idZakaznika);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                Map<String, Object> entry = new java.util.HashMap<>();
+                entry.put("tyzden", rs.getString("tyzden"));
+                entry.put("vcas", rs.getInt("vcas"));
+                entry.put("pozde", rs.getInt("pozde"));
+                data.add(entry);
+            }
+        } catch (SQLException e) {
+            System.out.println("Chyba pri nacitani statistik per tyzden: " + e.getMessage());
+        }
+        return data;
+    }
+
+    public static Map<String, Integer> ziskajRozlozenieObtiaznosti(int idZakaznika) {
+        String sql = "SELECT obtiaznost, COUNT(*) AS pocet FROM UKOL" +
+                " WHERE id_zakaznik = ? AND stav = 'Dokoncena' AND obtiaznost IS NOT NULL" +
+                " GROUP BY obtiaznost";
+        Map<String, Integer> result = new java.util.HashMap<>();
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idZakaznika);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                result.put(rs.getString("obtiaznost"), rs.getInt("pocet"));
+            }
+        } catch (SQLException e) {
+            System.out.println("Chyba pri nacitani rozlozenia obtiaznosti: " + e.getMessage());
+        }
+        return result;
+    }
+
+    public static String zistiTopDen(int idZakaznika) {
+        String sql = "SELECT strftime('%w', datumDokonceni) AS denVTydnu, COUNT(*) as pocet " +
+                "FROM UKOL " +
+                "WHERE id_zakaznik = ? AND stav = 'Dokoncena' AND datumDokonceni IS NOT NULL " +
+                "GROUP BY denVTydnu " +
+                "ORDER BY pocet DESC LIMIT 1";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, idZakaznika);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("denVTydnu"); // Vrátí textově "0" až "6"
+            }
+        } catch (SQLException e) {
+            System.out.println("Chyba při zjišťování top dne: " + e.getMessage());
+        }
+        return null;
+    }
 }

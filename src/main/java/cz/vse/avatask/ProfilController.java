@@ -108,6 +108,12 @@ public class ProfilController {
             zenaToggleButton.setToggleGroup(pohlavieToggleGroup);
         }
         nacitajProfil();
+
+        javafx.application.Platform.runLater(() -> {
+            if (menoPouzivatelaLabel != null && menoPouzivatelaLabel.getScene() != null) {
+                ThemeManager.aplikujTemu(menoPouzivatelaLabel.getScene());
+            }
+        });
     }
 
     @FXML
@@ -172,6 +178,11 @@ public class ProfilController {
         if (uspesne) {
             obnovAktualnehoPouzivatela();
             zobrazStatus("Nastavenia uložené.");
+
+            if (menoPouzivatelaLabel != null && menoPouzivatelaLabel.getScene() != null) {
+                ThemeManager.aplikujTemu(menoPouzivatelaLabel.getScene());
+            }
+            tmavyRezimToggle.setText(tmavyRezimToggle.isSelected() ? "Tmavý režim (Zapnutý)" : "Tmavý režim (Vypnutý)");
         } else {
             zobrazChybu("Nastavenia sa nepodarilo uložiť.");
         }
@@ -279,8 +290,8 @@ public class ProfilController {
         Pouzivatel aktualny = pouzivatel.get();
         aktualnyPouzivatelId = aktualny.getId();
         menoPouzivatelaLabel.setText(aktualny.getUzivatelskeMeno());
-        levelLabel.setText("Aktualny Level: " + aktualny.getLevel());
-        xpLabel.setText("Pocet XP: " + aktualny.getXp());
+        levelLabel.setText("Aktuálny Level: " + aktualny.getLevel());
+        xpLabel.setText("Počet XP: " + aktualny.getXp());
 
         if (hornyLevelLabel != null) hornyLevelLabel.setText("Level " + aktualny.getLevel());
         if (hornyXpLabel != null) hornyXpLabel.setText("XP: " + aktualny.getXp());
@@ -290,10 +301,7 @@ public class ProfilController {
         emailNotifikacieCheckBox.setSelected(aktualny.isNotifikace());
         statistickeUdajeCheckBox.setSelected(aktualny.isNotifikaceDeadline());
         tmavyRezimToggle.setSelected(aktualny.isLightMode());
-        tmavyRezimToggle.setText(aktualny.isLightMode() ? "Svetly rezim" : "Tmavy rezim");
-        aktualneHeslo = aktualny.getHeslo();
-        hesloViditelne = false;
-        hesloToggleButton.setSelected(false);
+        tmavyRezimToggle.setText(aktualny.isLightMode() ? "Tmavý režim (Zapnutý)" : "Tmavý režim (Vypnutý)");        hesloToggleButton.setSelected(false);
         aktualizujHesloZobrazenie();
         nastavPohlavie(aktualny.getPohlavie());
         aktualizujAvatar(aktualny.getPohlavie());
@@ -422,5 +430,27 @@ public class ProfilController {
         alert.setHeaderText(null);
         alert.setContentText(sprava);
         alert.showAndWait();
+    }
+
+    @FXML
+    private void otvorUlohy(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML_files/ulohy.fxml"));
+        Parent root = loader.load();
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setTitle("Avatask - Ulohy");
+        stage.getScene().setRoot(root);
+    }
+
+    @FXML
+    private void otvorProfil(ActionEvent event) {
+        nacitajProfil();
+    }
+    @FXML
+    private void otvorStatistiky(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML_files/stats.fxml"));
+        Parent root = loader.load();
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setTitle("Avatask - Statistiky");
+        stage.getScene().setRoot(root);
     }
 }
